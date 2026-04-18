@@ -1,5 +1,4 @@
 import { Card } from "@/components/ui/card";
-import { agentStatuses, type AgentStatus, type AgentType } from "@/data/mockData";
 import {
   Activity,
   Sparkles,
@@ -9,20 +8,16 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAgentLogs } from "@/hooks/useAgentLogs";
+import type { AgentType } from "@/lib/supabaseClient";
 
-const iconMap: Record<AgentType, LucideIcon> = {
-  performance: Activity,
-  creative: Sparkles,
-  budget: Wallet,
-  audience: Users,
-  nurturing: MessageCircle,
-};
-
-const statusStyles: Record<AgentStatus, { dot: string; text: string; label: string }> = {
-  active: { dot: "bg-success shadow-[0_0_10px_hsl(var(--success))]", text: "text-success", label: "Active" },
-  warning: { dot: "bg-warning shadow-[0_0_10px_hsl(var(--warning))]", text: "text-warning", label: "Attention" },
-  idle: { dot: "bg-muted-foreground/50", text: "text-muted-foreground", label: "Idle" },
-};
+const AGENTS: { type: AgentType; name: string; description: string; icon: LucideIcon }[] = [
+  { type: "performance", name: "Performance Auditor", description: "Monitors CTR, CPA, ROAS — pauses underperformers", icon: Activity },
+  { type: "creative", name: "Creative Analyst", description: "Detects creative fatigue and rotates assets", icon: Sparkles },
+  { type: "budget", name: "Budget Manager", description: "Reallocates spend toward highest-ROAS sets", icon: Wallet },
+  { type: "audience", name: "Audience Architect", description: "Builds lookalikes from converted leads", icon: Users },
+  { type: "nurturing", name: "Lead Nurturing", description: "Follows up stale leads via WhatsApp", icon: MessageCircle },
+];
 
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -35,6 +30,8 @@ function timeAgo(iso: string): string {
 }
 
 export function AgentStatusGrid() {
+  const { data: logs } = useAgentLogs();
+
   return (
     <Card className="p-5 bg-card border-border shadow-card">
       <div className="flex items-center justify-between mb-4">
@@ -46,9 +43,20 @@ export function AgentStatusGrid() {
         </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-        {agentStatuses.map((agent) => {
-          const Icon = iconMap[agent.type];
-          const styles = statusStyles[agent.status];
+        {AGENTS.map((agent) => {
+          const Icon = agent.icon;
+          const agentLogs = logs.filter((l) => l.agent_type === agent.type);
+          const last = agentLogs[0];
+          const hasError = agentLogs.some((l) => l.severity === "error");
+          const hasWarn = agentLogs.some((l) => l.severity === "warning");
+          const status = hasError ? "warning" : hasWarn ? "warning" : last ? "active" : "idle";
+          const styles =
+            status === "active"
+              ? { dot: "bg-success shadow-[0_0_10px_hsl(var(--success))]", text: "text-success", label: "Active" }
+              : status === "warning"
+                ? { dot: "bg-warning shadow-[0_0_10px_hsl(var(--warning))]", text: "text-warning", label: "Attention" }
+                : { dot: "bg-muted-foreground/50", text: "text-muted-foreground", label: "Idle" };
+
           return (
             <div
               key={agent.type}
@@ -59,13 +67,7 @@ export function AgentStatusGrid() {
                   <Icon className="h-4 w-4 text-foreground" />
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span
-                    className={cn(
-                      "h-1.5 w-1.5 rounded-full",
-                      styles.dot,
-                      agent.status === "active" && "animate-pulse-glow",
-                    )}
-                  />
+                  <span className={cn("h-1.5 w-1.5 rounded-full", styles.dot, status === "active" && "animate-pulse-glow")} />
                   <span className={cn("text-[10px] uppercase tracking-wider font-medium", styles.text)}>
                     {styles.label}
                   </span>
@@ -73,15 +75,11 @@ export function AgentStatusGrid() {
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-medium leading-tight">{agent.name}</p>
-                <p className="text-xs text-muted-foreground leading-snug line-clamp-2">
-                  {agent.description}
-                </p>
+                <p className="text-xs text-muted-foreground leading-snug line-clamp-2">{agent.description}</p>
               </div>
               <div className="pt-2 mt-auto border-t border-border flex items-center justify-between text-[11px] text-muted-foreground">
-                <span className="tabular-nums font-medium text-foreground">
-                  {agent.actionsToday}
-                </span>
-                <span>{timeAgo(agent.lastActionAt)}</span>
+                <span className="tabular-nums font-medium text-foreground">{agentLogs.length}</span>
+                <span>{last ? timeAgo(last.created_at) : "—"}</span>
               </div>
             </div>
           );
