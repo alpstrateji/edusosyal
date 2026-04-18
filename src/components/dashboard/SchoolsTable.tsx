@@ -1,9 +1,11 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { schools } from "@/data/mockData";
 import { cn } from "@/lib/utils";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useSchools } from "@/hooks/useSchools";
+import { useCampaigns } from "@/hooks/useCampaigns";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const inr = (n: number) =>
   "₹" + new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(n);
@@ -15,6 +17,19 @@ const statusMap = {
 };
 
 export function SchoolsTable() {
+  const { data: schools, loading } = useSchools();
+  const { data: campaigns } = useCampaigns();
+
+  const rows = schools.map((s) => {
+    const sc = campaigns.filter((c) => c.school_id === s.id);
+    const spend = sc.reduce((a, c) => a + Number(c.spend), 0);
+    const avgRoas = sc.length ? sc.reduce((a, c) => a + Number(c.roas), 0) / sc.length : 0;
+    const avgCpa = sc.length ? sc.reduce((a, c) => a + Number(c.cpa), 0) / sc.length : 0;
+    const status: "healthy" | "attention" | "critical" =
+      avgRoas >= 4 ? "healthy" : avgRoas >= 2.5 ? "attention" : "critical";
+    return { id: s.id, name: s.name, spend, roas: avgRoas, cpa: avgCpa, campaigns: sc.length, status };
+  });
+
   return (
     <Card className="bg-card border-border shadow-card overflow-hidden">
       <div className="p-5 flex items-center justify-between">
@@ -34,29 +49,38 @@ export function SchoolsTable() {
             <tr className="border-b border-border bg-muted/30 text-[11px] uppercase tracking-wider text-muted-foreground">
               <th className="text-left font-medium px-5 py-2.5">School</th>
               <th className="text-right font-medium px-3 py-2.5">Spend</th>
-              <th className="text-right font-medium px-3 py-2.5">Leads</th>
+              <th className="text-right font-medium px-3 py-2.5">Campaigns</th>
               <th className="text-right font-medium px-3 py-2.5">CPA</th>
               <th className="text-right font-medium px-3 py-2.5">ROAS</th>
               <th className="text-right font-medium px-5 py-2.5">Status</th>
             </tr>
           </thead>
           <tbody>
-            {schools.map((s) => (
-              <tr
-                key={s.id}
-                className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors"
-              >
+            {loading && (
+              <tr>
+                <td colSpan={6} className="px-5 py-6">
+                  <Skeleton className="h-4 w-full" />
+                </td>
+              </tr>
+            )}
+            {!loading && rows.length === 0 && (
+              <tr>
+                <td colSpan={6} className="px-5 py-8 text-center text-sm text-muted-foreground">
+                  No schools found. Run the seed SQL in your Supabase project.
+                </td>
+              </tr>
+            )}
+            {rows.map((s) => (
+              <tr key={s.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
                 <td className="px-5 py-3">
                   <div className="flex flex-col">
                     <span className="font-medium">{s.name}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {s.city} · target {s.studentsTarget} admissions
-                    </span>
+                    <span className="text-xs text-muted-foreground">{s.campaigns} active campaigns</span>
                   </div>
                 </td>
-                <td className="px-3 py-3 text-right tabular-nums">{inr(s.monthlySpend)}</td>
-                <td className="px-3 py-3 text-right tabular-nums">{s.leads}</td>
-                <td className="px-3 py-3 text-right tabular-nums">{inr(s.cpa)}</td>
+                <td className="px-3 py-3 text-right tabular-nums">{inr(s.spend)}</td>
+                <td className="px-3 py-3 text-right tabular-nums">{s.campaigns}</td>
+                <td className="px-3 py-3 text-right tabular-nums">{inr(Math.round(s.cpa))}</td>
                 <td className="px-3 py-3 text-right tabular-nums font-medium">
                   <span className={cn(s.roas >= 4 ? "text-success" : s.roas >= 3 ? "text-warning" : "text-destructive")}>
                     {s.roas.toFixed(1)}x
