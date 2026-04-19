@@ -1,12 +1,18 @@
-import { Bell, Moon, Sun, Search } from "lucide-react";
+import { Bell, Moon, Sun, Search, LogOut } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useTheme } from "@/components/ThemeProvider";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export function Topbar() {
   const { theme, toggleTheme } = useTheme();
+  const { user, profile, signOut } = useAuth();
+  const navigate = useNavigate();
+  const initials = (user?.email ?? "?").slice(0, 2).toUpperCase();
+  const roleLabel = profile?.role === "agency_admin" ? "Agency Admin" : profile?.role === "school_admin" ? "School Admin" : "Member";
 
   return (
     <header className="h-14 flex items-center gap-3 border-b border-border bg-background/80 backdrop-blur-md px-4 sticky top-0 z-30">
