@@ -1,16 +1,26 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index.tsx";
 import AgentLogs from "./pages/AgentLogs.tsx";
 import ComingSoon from "./pages/ComingSoon.tsx";
+import Login from "./pages/Login.tsx";
+import Signup from "./pages/Signup.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
+
+const Protected = ({ children }: { children: React.ReactNode }) => (
+  <ProtectedRoute>
+    <AppLayout>{children}</AppLayout>
+  </ProtectedRoute>
+);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -19,42 +29,19 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <AppLayout>
-                  <Index />
-                </AppLayout>
-              }
-            />
-            <Route
-              path="/logs"
-              element={
-                <AppLayout>
-                  <AgentLogs />
-                </AppLayout>
-              }
-            />
-            <Route
-              path="/schools"
-              element={
-                <AppLayout>
-                  <ComingSoon title="School Dashboards" />
-                </AppLayout>
-              }
-            />
-            <Route
-              path="/inbox"
-              element={
-                <AppLayout>
-                  <ComingSoon title="WhatsApp Inbox" />
-                </AppLayout>
-              }
-            />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <AuthProvider>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/dashboard" element={<Protected><Index /></Protected>} />
+              <Route path="/logs" element={<Protected><AgentLogs /></Protected>} />
+              <Route path="/schools" element={<Protected><ComingSoon title="School Dashboards" /></Protected>} />
+              <Route path="/inbox" element={<Protected><ComingSoon title="WhatsApp Inbox" /></Protected>} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>
