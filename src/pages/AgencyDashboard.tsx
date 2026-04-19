@@ -3,6 +3,7 @@ import { KpiCard } from "@/components/dashboard/KpiCard";
 import { LeadsBarChart, PerformanceChart } from "@/components/dashboard/Charts";
 import { AgentStatusGrid } from "@/components/dashboard/AgentStatusGrid";
 import { SchoolsTable } from "@/components/dashboard/SchoolsTable";
+import { WhatsAppPanel } from "@/components/dashboard/WhatsAppPanel";
 import { Button } from "@/components/ui/button";
 import { useSchools } from "@/hooks/useSchools";
 import { useCampaigns } from "@/hooks/useCampaigns";
@@ -66,7 +67,11 @@ export default function AgencyDashboard() {
       </div>
 
       <AgentStatusGrid />
-      <SchoolsTable />
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <WhatsAppPanel />
+        <SchoolsTable />
+      </div>
 
       <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2">
         <Activity className="h-3 w-3" />
