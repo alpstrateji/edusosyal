@@ -1,4 +1,4 @@
-import { Activity, IndianRupee, Target, TrendingUp, Users, Zap } from "lucide-react";
+import { Activity, IndianRupee, MessageSquare, Target, TrendingUp, UserPlus, Users, Zap } from "lucide-react";
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import { LeadsBarChart, PerformanceChart } from "@/components/dashboard/Charts";
 import { AgentStatusGrid } from "@/components/dashboard/AgentStatusGrid";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useSchools } from "@/hooks/useSchools";
 import { useCampaigns } from "@/hooks/useCampaigns";
 import { useAgentLogs } from "@/hooks/useAgentLogs";
+import { useFunnelStats } from "@/hooks/useFunnelStats";
 
 const inr = (n: number) =>
   "₹" + new Intl.NumberFormat("en-IN", { notation: "compact", maximumFractionDigits: 1 }).format(n);
@@ -16,6 +17,7 @@ export default function AgencyDashboard() {
   const { data: schools } = useSchools();
   const { data: campaigns } = useCampaigns();
   const { data: logs } = useAgentLogs();
+  const funnel = useFunnelStats();
 
   const totalSpend = campaigns.reduce((a, c) => a + Number(c.spend), 0);
   const activeCampaigns = campaigns.filter((c) => c.status === "active").length;
@@ -58,6 +60,22 @@ export default function AgencyDashboard() {
         <KpiCard label="Active Campaigns" value={activeCampaigns.toString()} delta={6} icon={Users} hint={`${campaigns.length} total`} />
         <KpiCard label="Avg ROAS" value={`${avgRoas}x`} delta={8} icon={TrendingUp} hint="across portfolio" />
         <KpiCard label="Avg CPA" value={`₹${avgCpa}`} delta={-6} icon={Target} hint="cost per acquisition" />
+      </div>
+
+      {/* Lead funnel KPIs (Meta → WhatsApp loop) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <KpiCard
+          label="New Leads (last 24h)"
+          value={funnel.loading ? "…" : funnel.newLeads24h.toString()}
+          icon={UserPlus}
+          hint="from Meta Lead Ads + manual"
+        />
+        <KpiCard
+          label="Auto-messages sent (24h)"
+          value={funnel.loading ? "…" : funnel.autoMessages24h.toString()}
+          icon={MessageSquare}
+          hint="WhatsApp via nurturing agent"
+        />
       </div>
 
       {/* Charts */}
