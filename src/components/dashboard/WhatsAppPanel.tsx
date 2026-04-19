@@ -60,8 +60,8 @@ export function WhatsAppPanel() {
     <Card className="border-border/50">
       <CardHeader>
         <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-md bg-emerald-500/10 flex items-center justify-center">
-            <MessageSquare className="h-4 w-4 text-emerald-500" />
+          <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center">
+            <MessageSquare className="h-4 w-4 text-primary" />
           </div>
           <div>
             <CardTitle className="text-base">Send WhatsApp</CardTitle>
