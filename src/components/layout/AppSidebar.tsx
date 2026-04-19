@@ -15,7 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 
 const mainItems = [
-  { title: "Agency Dashboard", url: "/", icon: LayoutDashboard },
+  { title: "Agency Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Agent Logs", url: "/logs", icon: Terminal },
 ];
 
@@ -30,7 +30,7 @@ export function AppSidebar() {
   const location = useLocation();
 
   const isActive = (path: string) =>
-    path === "/" ? location.pathname === "/" : location.pathname.startsWith(path);
+    path === "/dashboard" ? location.pathname === "/dashboard" : location.pathname.startsWith(path);
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
@@ -64,7 +64,7 @@ export function AppSidebar() {
                     <SidebarMenuButton asChild isActive={active}>
                       <NavLink
                         to={item.url}
-                        end={item.url === "/"}
+                        end={item.url === "/dashboard"}
                         className={cn(
                           "transition-colors",
                           active &&

@@ -21,9 +21,11 @@ export function useAgentLogs() {
       setLoading(false);
     })();
 
-    // Realtime subscription — new logs stream in like a terminal
-    const channel = supabase
-      .channel("agent_logs_stream")
+    // Realtime subscription — new logs stream in like a terminal.
+    // IMPORTANT: register `.on(...)` BEFORE `.subscribe()` to avoid the
+    // "cannot add postgres_changes callbacks after subscribe()" error.
+    const channel = supabase.channel(`agent_logs_stream_${Math.random().toString(36).slice(2)}`);
+    channel
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "agent_logs" },

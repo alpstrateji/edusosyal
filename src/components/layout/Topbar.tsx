@@ -1,12 +1,18 @@
-import { Bell, Moon, Sun, Search } from "lucide-react";
+import { Bell, Moon, Sun, Search, LogOut } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useTheme } from "@/components/ThemeProvider";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export function Topbar() {
   const { theme, toggleTheme } = useTheme();
+  const { user, profile, signOut } = useAuth();
+  const navigate = useNavigate();
+  const initials = (user?.email ?? "?").slice(0, 2).toUpperCase();
+  const roleLabel = profile?.role === "agency_admin" ? "Agency Admin" : profile?.role === "school_admin" ? "School Admin" : "Member";
 
   return (
     <header className="h-14 flex items-center gap-3 border-b border-border bg-background/80 backdrop-blur-md px-4 sticky top-0 z-30">
@@ -46,13 +52,22 @@ export function Topbar() {
         <div className="ml-2 flex items-center gap-2 pl-3 border-l border-border">
           <Avatar className="h-8 w-8">
             <AvatarFallback className="bg-gradient-primary text-primary-foreground text-xs font-semibold">
-              AD
+              {initials}
             </AvatarFallback>
           </Avatar>
           <div className="hidden sm:flex flex-col leading-tight">
-            <span className="text-xs font-medium">Agency Admin</span>
-            <span className="text-[10px] text-muted-foreground">demo@edusonex.io</span>
+            <span className="text-xs font-medium">{roleLabel}</span>
+            <span className="text-[10px] text-muted-foreground">{user?.email ?? ""}</span>
           </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={async () => { await signOut(); navigate("/login", { replace: true }); }}
+            className="h-9 w-9 text-muted-foreground hover:text-foreground"
+            aria-label="Sign out"
+          >
+            <LogOut className="h-4 w-4" />
+          </Button>
         </div>
       </div>
     </header>
