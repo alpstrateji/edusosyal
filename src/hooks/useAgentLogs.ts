@@ -16,7 +16,10 @@ export function useAgentLogs() {
         .order("created_at", { ascending: false })
         .limit(200);
       if (!active) return;
-      if (error) setError(error.message);
+      if (error) {
+        console.error("[useAgentLogs] fetch failed", error);
+        setError("load_failed");
+      }
       else setData((data as AgentLogRow[]) ?? []);
       setLoading(false);
     })();
