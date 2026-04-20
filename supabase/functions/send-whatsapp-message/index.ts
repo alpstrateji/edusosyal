@@ -38,9 +38,28 @@ Deno.serve(async (req) => {
   const PHONE_ID = Deno.env.get("WHATSAPP_PHONE_ID");
   const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
   const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
   if (!TOKEN || !PHONE_ID) {
     return json({ error: "WHATSAPP_TOKEN and WHATSAPP_PHONE_ID must be set" }, 500);
+  }
+
+  // ---- Authentication: allow either a logged-in user JWT, or service-role key
+  // (used by DB triggers / other edge functions). Reject all anonymous callers.
+  const authHeader = req.headers.get("Authorization") ?? "";
+  const bearer = authHeader.replace(/^Bearer\s+/i, "");
+
+  if (!bearer) return json({ error: "Unauthorized" }, 401);
+
+  const isServiceRole = bearer === SERVICE_ROLE;
+  if (!isServiceRole) {
+    const userClient = createClient(SUPABASE_URL, ANON_KEY, {
+      global: { headers: { Authorization: `Bearer ${bearer}` } },
+    });
+    const { data: claims, error: authErr } = await userClient.auth.getClaims(bearer);
+    if (authErr || !claims?.claims?.sub) {
+      return json({ error: "Unauthorized" }, 401);
+    }
   }
 
   let body: RequestBody;

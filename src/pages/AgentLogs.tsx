@@ -271,7 +271,7 @@ export default function AgentLogs() {
           )}
           {error && (
             <div className="p-8 text-center text-sm text-destructive font-mono">
-              Failed to load logs: {error}
+              Unable to load logs. Please try again or contact support.
             </div>
           )}
           {!loading && !error && filtered.length === 0 ? (

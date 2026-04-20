@@ -41,6 +41,7 @@ Deno.serve(async (req) => {
 
   const VERIFY_TOKEN = Deno.env.get("META_VERIFY_TOKEN");
   const PAGE_TOKEN = Deno.env.get("META_PAGE_ACCESS_TOKEN");
+  const APP_SECRET = Deno.env.get("META_APP_SECRET");
   const DEFAULT_SCHOOL_ID = Deno.env.get("META_DEFAULT_SCHOOL_ID");
   const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
   const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -62,10 +63,23 @@ Deno.serve(async (req) => {
   }
 
   if (!PAGE_TOKEN) return json({ error: "META_PAGE_ACCESS_TOKEN is not set" }, 500);
+  if (!APP_SECRET) return json({ error: "META_APP_SECRET is not set" }, 500);
+
+  // ---- 1b. Verify Meta x-hub-signature-256 HMAC ----
+  const rawBody = await req.text();
+  const sigHeader = req.headers.get("x-hub-signature-256") ?? "";
+  if (!sigHeader.startsWith("sha256=")) {
+    return json({ error: "Missing signature" }, 401);
+  }
+  const expectedHex = await hmacSha256Hex(APP_SECRET, rawBody);
+  const providedHex = sigHeader.slice("sha256=".length);
+  if (!timingSafeEqualHex(providedHex, expectedHex)) {
+    return json({ error: "Invalid signature" }, 401);
+  }
 
   let payload: any;
   try {
-    payload = await req.json();
+    payload = JSON.parse(rawBody);
   } catch {
     return json({ error: "Invalid JSON" }, 400);
   }
@@ -192,4 +206,29 @@ function json(data: unknown, status = 200) {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
+}
+
+// ---- HMAC-SHA256 (hex) using Web Crypto ----
+async function hmacSha256Hex(secret: string, message: string): Promise<string> {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(message));
+  return Array.from(new Uint8Array(sig))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+// Constant-time comparison of two equal-length hex strings.
+function timingSafeEqualHex(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) {
+    diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return diff === 0;
 }
