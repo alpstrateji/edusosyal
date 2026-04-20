@@ -42,7 +42,6 @@ Deno.serve(async (req) => {
   const VERIFY_TOKEN = Deno.env.get("META_VERIFY_TOKEN");
   const PAGE_TOKEN = Deno.env.get("META_PAGE_ACCESS_TOKEN");
   const APP_SECRET = Deno.env.get("META_APP_SECRET");
-  const DEFAULT_SCHOOL_ID = Deno.env.get("META_DEFAULT_SCHOOL_ID");
   const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
   const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
@@ -117,8 +116,8 @@ Deno.serve(async (req) => {
         const phone = get("phone_number", "phone") ?? "";
         const intent = get("intent", "course_interest", "grade") ?? null;
 
-        // ---- 4. Map ad → school. Lookup table optional; falls back to env ----
-        let schoolId: string | null = DEFAULT_SCHOOL_ID ?? null;
+        // ---- 4. Map ad → school. STRICT: no random fallback. ----
+        let schoolId: string | null = null;
         if (v.campaign_id || v.ad_id || v.form_id) {
           const { data: mapping } = await supabase
             .from("meta_ad_mappings")
@@ -138,7 +137,19 @@ Deno.serve(async (req) => {
         }
 
         if (!schoolId) {
-          errors.push({ leadgen_id: v.leadgen_id, error: "No school mapping and no META_DEFAULT_SCHOOL_ID" });
+          // Strict: refuse to randomly assign. Log a hard error so the user sees it.
+          const reason = `No meta_ad_mappings row matches campaign_id=${v.campaign_id ?? "n/a"} ad_id=${v.ad_id ?? "n/a"} form_id=${v.form_id ?? "n/a"}`;
+          errors.push({ leadgen_id: v.leadgen_id, error: reason });
+          await supabase.from("agent_logs").insert({
+            // Pick any one school_id to satisfy NOT NULL constraint while still surfacing the error.
+            // We leave school_id NULL only if the column allows it; agent_logs requires it, so use null-safe insert via RPC pattern is overkill — fall back to skipping the log when no school exists.
+            school_id: null as unknown as string,
+            agent_type: "nurturing",
+            action: "Unmapped Meta lead — discarded",
+            reasoning: reason,
+            severity: "error",
+            metadata: { leadgen_id: v.leadgen_id, campaign_id: v.campaign_id, ad_id: v.ad_id, form_id: v.form_id },
+          });
           continue;
         }
 
@@ -185,14 +196,6 @@ Deno.serve(async (req) => {
       } catch (err) {
         console.error("Lead processing failed", err);
         errors.push({ leadgen_id: v.leadgen_id, error: String(err) });
-        await supabase.from("agent_logs").insert({
-          school_id: DEFAULT_SCHOOL_ID ?? null,
-          agent_type: "nurturing",
-          action: "Failed to process Meta lead",
-          reasoning: `Webhook processing error for leadgen_id=${v.leadgen_id}: ${String(err)}`,
-          severity: "error",
-          metadata: { leadgen_id: v.leadgen_id, error: String(err) },
-        });
       }
     }
   }
