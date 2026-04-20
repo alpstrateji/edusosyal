@@ -11,6 +11,7 @@ export interface Recommendation {
   severity: "info" | "success" | "warning" | "error";
   status: "open" | "applied" | "dismissed";
   created_at: string;
+  metadata?: Record<string, unknown> | null;
 }
 
 export function useRecommendations() {
@@ -29,7 +30,16 @@ export function useRecommendations() {
         .limit(20);
       if (!active) return;
       if (error) console.error("[useRecommendations]", error);
-      setData((data as Recommendation[]) ?? []);
+      // Sort by AI-assigned rank (metadata.rank) within the same generation batch.
+      const rows = ((data as Recommendation[]) ?? []).slice().sort((a, b) => {
+        const ra = Number((a.metadata as any)?.rank ?? 999);
+        const rb = Number((b.metadata as any)?.rank ?? 999);
+        if (a.created_at !== b.created_at) {
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        }
+        return ra - rb;
+      });
+      setData(rows);
       setLoading(false);
     }
     load();
@@ -50,14 +60,34 @@ export function useRecommendations() {
   }, []);
 
   async function setStatus(id: string, status: "applied" | "dismissed") {
+    const rec = data.find((r) => r.id === id);
     setData((prev) => prev.filter((r) => r.id !== id));
-    await supabase.from("ai_recommendations").update({ status }).eq("id", id);
+    const { error } = await supabase
+      .from("ai_recommendations")
+      .update({ status })
+      .eq("id", id);
+    if (error) console.error("[setStatus]", error);
+
+    // Log the decision to agent_logs (spec: "Log every important action").
+    if (rec?.school_id) {
+      await supabase.from("agent_logs").insert({
+        school_id: rec.school_id,
+        agent_type: "performance",
+        action: status === "applied"
+          ? `Applied recommendation: ${rec.title}`
+          : `Dismissed recommendation: ${rec.title}`,
+        reasoning: rec.rationale,
+        severity: status === "applied" ? "success" : "info",
+        metadata: { recommendation_id: id, category: rec.category, action: rec.action },
+      });
+    }
   }
 
   async function regenerate() {
-    await supabase.functions.invoke("generate-recommendations", {
+    const { error } = await supabase.functions.invoke("generate-recommendations", {
       body: { trigger: "manual" },
     });
+    if (error) throw error;
   }
 
   return { data, loading, setStatus, regenerate };
