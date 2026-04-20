@@ -40,13 +40,22 @@ export interface Campaign {
   created_at: string;
 }
 
+export type IntentLevel = "high" | "medium" | "low" | "unknown";
+
 export interface Lead {
   id: string;
   school_id: string;
   name: string;
   phone: string;
-  intent: string;
+  intent: string | null;
   status: string;
+  source?: string | null;
+  campaign_id?: string | null;
+  intent_score?: number | null;
+  intent_level?: IntentLevel;
+  score_reason?: string | null;
+  scored_at?: string | null;
+  replied_at?: string | null;
   created_at: string;
 }
 

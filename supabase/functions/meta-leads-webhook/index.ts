@@ -42,7 +42,6 @@ Deno.serve(async (req) => {
   const VERIFY_TOKEN = Deno.env.get("META_VERIFY_TOKEN");
   const PAGE_TOKEN = Deno.env.get("META_PAGE_ACCESS_TOKEN");
   const APP_SECRET = Deno.env.get("META_APP_SECRET");
-  const DEFAULT_SCHOOL_ID = Deno.env.get("META_DEFAULT_SCHOOL_ID");
   const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
   const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
@@ -117,8 +116,8 @@ Deno.serve(async (req) => {
         const phone = get("phone_number", "phone") ?? "";
         const intent = get("intent", "course_interest", "grade") ?? null;
 
-        // ---- 4. Map ad → school. Lookup table optional; falls back to env ----
-        let schoolId: string | null = DEFAULT_SCHOOL_ID ?? null;
+        // ---- 4. Map ad → school. STRICT: no random fallback. ----
+        let schoolId: string | null = null;
         if (v.campaign_id || v.ad_id || v.form_id) {
           const { data: mapping } = await supabase
             .from("meta_ad_mappings")
@@ -138,7 +137,12 @@ Deno.serve(async (req) => {
         }
 
         if (!schoolId) {
-          errors.push({ leadgen_id: v.leadgen_id, error: "No school mapping and no META_DEFAULT_SCHOOL_ID" });
+          // Strict: refuse to randomly assign. Surface the error in the webhook
+          // response and console — agent_logs.school_id is NOT NULL so we can't
+          // log there without a school.
+          const reason = `Unmapped Meta lead. Add a row in meta_ad_mappings for campaign_id=${v.campaign_id ?? "n/a"} ad_id=${v.ad_id ?? "n/a"} form_id=${v.form_id ?? "n/a"}.`;
+          console.error(reason);
+          errors.push({ leadgen_id: v.leadgen_id, error: reason });
           continue;
         }
 
@@ -185,14 +189,6 @@ Deno.serve(async (req) => {
       } catch (err) {
         console.error("Lead processing failed", err);
         errors.push({ leadgen_id: v.leadgen_id, error: String(err) });
-        await supabase.from("agent_logs").insert({
-          school_id: DEFAULT_SCHOOL_ID ?? null,
-          agent_type: "nurturing",
-          action: "Failed to process Meta lead",
-          reasoning: `Webhook processing error for leadgen_id=${v.leadgen_id}: ${String(err)}`,
-          severity: "error",
-          metadata: { leadgen_id: v.leadgen_id, error: String(err) },
-        });
       }
     }
   }

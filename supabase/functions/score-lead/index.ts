@@ -1,0 +1,157 @@
+// Edge Function: score-lead
+// Scores a single lead's purchase intent (high/medium/low) using
+// Lovable AI Gateway and writes intent_score + intent_level back to the row.
+// Triggered by the `trg_lead_score` DB trigger after each lead insert,
+// and callable manually with { lead_id }.
+
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+const SYSTEM_PROMPT = `You score education leads for a school admissions agency.
+Given a lead's name, declared intent text, source campaign, and message channel,
+return a JSON tool call with fields:
+- score: number 0..1 (probability the lead enrolls)
+- level: "high" | "medium" | "low"
+- reason: short single sentence (max 140 chars), no fluff
+
+Heuristics:
+- Specific intent text (grade level, scholarship, admission timeline, fees) → high
+- Generic "more info", "open house" → medium
+- Vague / no intent text / clearly off-topic → low`;
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
+
+  const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+  const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+  if (!LOVABLE_API_KEY) return json({ error: "LOVABLE_API_KEY not set" }, 500);
+
+  const body = await req.json().catch(() => ({}));
+  const lead_id: string | undefined = body?.lead_id;
+  if (!lead_id) return json({ error: "lead_id required" }, 400);
+
+  const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
+
+  const { data: lead, error: leadErr } = await supabase
+    .from("leads")
+    .select("id, school_id, name, intent, source, campaign_id")
+    .eq("id", lead_id)
+    .maybeSingle();
+  if (leadErr || !lead) return json({ error: leadErr?.message ?? "Lead not found" }, 404);
+
+  // Fetch a campaign label if known (best-effort, no failure).
+  let campaignLabel = lead.campaign_id ?? "manual";
+  if (lead.campaign_id) {
+    const { data: m } = await supabase
+      .from("meta_ad_mappings")
+      .select("label")
+      .eq("campaign_id", lead.campaign_id)
+      .limit(1)
+      .maybeSingle();
+    if (m?.label) campaignLabel = m.label;
+  }
+
+  const userPrompt = [
+    `Lead name: ${lead.name}`,
+    `Declared intent: ${lead.intent ?? "(none)"}`,
+    `Source: ${lead.source ?? "manual"}`,
+    `Campaign: ${campaignLabel}`,
+  ].join("\n");
+
+  // Call Lovable AI Gateway with structured tool output.
+  const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${LOVABLE_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "google/gemini-3-flash-preview",
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: userPrompt },
+      ],
+      tools: [{
+        type: "function",
+        function: {
+          name: "score_lead",
+          description: "Return the intent score for this lead.",
+          parameters: {
+            type: "object",
+            properties: {
+              score: { type: "number", minimum: 0, maximum: 1 },
+              level: { type: "string", enum: ["high", "medium", "low"] },
+              reason: { type: "string" },
+            },
+            required: ["score", "level", "reason"],
+            additionalProperties: false,
+          },
+        },
+      }],
+      tool_choice: { type: "function", function: { name: "score_lead" } },
+    }),
+  });
+
+  if (!aiRes.ok) {
+    const text = await aiRes.text();
+    console.error("AI scoring failed", aiRes.status, text);
+    if (aiRes.status === 429 || aiRes.status === 402) {
+      return json({ error: "AI quota exceeded" }, aiRes.status);
+    }
+    return json({ error: "AI scoring failed" }, 502);
+  }
+
+  const aiJson = await aiRes.json();
+  const call = aiJson?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
+  let parsed: { score: number; level: string; reason: string } | null = null;
+  try {
+    parsed = call ? JSON.parse(call) : null;
+  } catch {
+    parsed = null;
+  }
+  if (!parsed) return json({ error: "AI returned no structured output" }, 502);
+
+  const level = (["high", "medium", "low"].includes(parsed.level) ? parsed.level : "low") as
+    "high" | "medium" | "low";
+
+  const { error: updErr } = await supabase
+    .from("leads")
+    .update({
+      intent_score: parsed.score,
+      intent_level: level,
+      score_reason: parsed.reason,
+      scored_at: new Date().toISOString(),
+    })
+    .eq("id", lead_id);
+
+  if (updErr) {
+    console.error("Lead update failed", updErr);
+    return json({ error: "Lead update failed" }, 500);
+  }
+
+  // Log the scoring decision for the audit trail.
+  await supabase.from("agent_logs").insert({
+    school_id: lead.school_id,
+    agent_type: "performance",
+    action: `Scored lead ${lead.name}: ${level} (${(parsed.score * 100).toFixed(0)}%)`,
+    reasoning: parsed.reason,
+    severity: level === "high" ? "success" : level === "low" ? "warning" : "info",
+    metadata: { lead_id, score: parsed.score, level },
+  });
+
+  return json({ ok: true, lead_id, level, score: parsed.score });
+});
+
+function json(data: unknown, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
