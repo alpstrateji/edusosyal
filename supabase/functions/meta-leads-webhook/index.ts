@@ -137,19 +137,12 @@ Deno.serve(async (req) => {
         }
 
         if (!schoolId) {
-          // Strict: refuse to randomly assign. Log a hard error so the user sees it.
-          const reason = `No meta_ad_mappings row matches campaign_id=${v.campaign_id ?? "n/a"} ad_id=${v.ad_id ?? "n/a"} form_id=${v.form_id ?? "n/a"}`;
+          // Strict: refuse to randomly assign. Surface the error in the webhook
+          // response and console — agent_logs.school_id is NOT NULL so we can't
+          // log there without a school.
+          const reason = `Unmapped Meta lead. Add a row in meta_ad_mappings for campaign_id=${v.campaign_id ?? "n/a"} ad_id=${v.ad_id ?? "n/a"} form_id=${v.form_id ?? "n/a"}.`;
+          console.error(reason);
           errors.push({ leadgen_id: v.leadgen_id, error: reason });
-          await supabase.from("agent_logs").insert({
-            // Pick any one school_id to satisfy NOT NULL constraint while still surfacing the error.
-            // We leave school_id NULL only if the column allows it; agent_logs requires it, so use null-safe insert via RPC pattern is overkill — fall back to skipping the log when no school exists.
-            school_id: null as unknown as string,
-            agent_type: "nurturing",
-            action: "Unmapped Meta lead — discarded",
-            reasoning: reason,
-            severity: "error",
-            metadata: { leadgen_id: v.leadgen_id, campaign_id: v.campaign_id, ad_id: v.ad_id, form_id: v.form_id },
-          });
           continue;
         }
 
