@@ -1,4 +1,4 @@
-import { LayoutDashboard, Terminal, School, MessageSquare, Sparkles } from "lucide-react";
+import { LayoutDashboard, Terminal, School, MessageSquare, Sparkles, Tag } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -17,10 +17,11 @@ import { cn } from "@/lib/utils";
 const mainItems = [
   { title: "Agency Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Agent Logs", url: "/logs", icon: Terminal },
+  { title: "Schools", url: "/schools", icon: School },
+  { title: "Meta Mappings", url: "/meta-mappings", icon: Tag },
 ];
 
 const stubItems = [
-  { title: "Schools", url: "/schools", icon: School },
   { title: "WhatsApp Inbox", url: "/inbox", icon: MessageSquare },
 ];
 

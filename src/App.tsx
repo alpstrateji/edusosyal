@@ -13,6 +13,8 @@ import ComingSoon from "./pages/ComingSoon.tsx";
 import Login from "./pages/Login.tsx";
 import Signup from "./pages/Signup.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import SchoolsAdmin from "./pages/SchoolsAdmin.tsx";
+import MetaMappingsAdmin from "./pages/MetaMappingsAdmin.tsx";
 
 const queryClient = new QueryClient();
 
@@ -36,7 +38,8 @@ const App = () => (
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<Protected><Index /></Protected>} />
               <Route path="/logs" element={<Protected><AgentLogs /></Protected>} />
-              <Route path="/schools" element={<Protected><ComingSoon title="School Dashboards" /></Protected>} />
+              <Route path="/schools" element={<Protected><SchoolsAdmin /></Protected>} />
+              <Route path="/meta-mappings" element={<Protected><MetaMappingsAdmin /></Protected>} />
               <Route path="/inbox" element={<Protected><ComingSoon title="WhatsApp Inbox" /></Protected>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
