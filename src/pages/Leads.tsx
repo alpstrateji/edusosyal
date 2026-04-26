@@ -68,7 +68,7 @@ function timeAgo(iso: string) {
 }
 
 export default function Leads() {
-  const { data: leads, loading } = useLeads();
+  const { data: leads, loading, refetch } = useLeads();
   const { data: schools } = useSchools();
 
   const [query, setQuery] = useState("");
@@ -119,9 +119,7 @@ export default function Leads() {
     }
     toast.success(`Status updated to ${status}`);
     setSelected({ ...lead, status });
-    // Refresh by reloading window state cheaply: re-fetch via a hard reload of hook is heavy;
-    // patch local list mutation instead by triggering a soft re-render.
-    // Simplest: update selected and let user refresh. Re-fetch on next mount.
+    refetch();
   }
 
   return (

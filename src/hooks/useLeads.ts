@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase, type Lead } from "@/lib/supabaseClient";
 
 export function useLeads() {
@@ -6,10 +6,21 @@ export function useLeads() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchLeads = useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("leads")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(500);
+    if (error) setError(error.message);
+    else setData((data as Lead[]) ?? []);
+    setLoading(false);
+  }, []);
+
   useEffect(() => {
     let active = true;
     (async () => {
-      setLoading(true);
       const { data, error } = await supabase
         .from("leads")
         .select("*")
@@ -25,5 +36,5 @@ export function useLeads() {
     };
   }, []);
 
-  return { data, loading, error };
+  return { data, loading, error, refetch: fetchLeads };
 }
