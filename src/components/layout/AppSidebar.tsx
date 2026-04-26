@@ -1,4 +1,4 @@
-import { LayoutDashboard, Terminal, School, MessageSquare, Sparkles, Tag, Users } from "lucide-react";
+import { LayoutDashboard, Terminal, School, MessageSquare, Sparkles, Tag, Users, Megaphone } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -17,8 +17,9 @@ import { cn } from "@/lib/utils";
 const mainItems = [
   { title: "Agency Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Leads", url: "/leads", icon: Users },
-  { title: "Agent Logs", url: "/logs", icon: Terminal },
+  { title: "Campaigns", url: "/campaigns", icon: Megaphone },
   { title: "Schools", url: "/schools", icon: School },
+  { title: "Agent Logs", url: "/logs", icon: Terminal },
   { title: "Meta Mappings", url: "/meta-mappings", icon: Tag },
 ];
 
