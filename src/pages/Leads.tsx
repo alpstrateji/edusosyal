@@ -360,7 +360,7 @@ export default function Leads() {
                     </SelectContent>
                   </Select>
                   <p className="text-[11px] text-muted-foreground">
-                    Refresh the page to see the change reflected in the list.
+                    Changes apply immediately and refresh the list.
                   </p>
                 </div>
 
