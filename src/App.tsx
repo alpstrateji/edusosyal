@@ -15,6 +15,7 @@ import Signup from "./pages/Signup.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import SchoolsAdmin from "./pages/SchoolsAdmin.tsx";
 import MetaMappingsAdmin from "./pages/MetaMappingsAdmin.tsx";
+import Leads from "./pages/Leads.tsx";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App = () => (
               <Route path="/signup" element={<Signup />} />
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<Protected><Index /></Protected>} />
+              <Route path="/leads" element={<Protected><Leads /></Protected>} />
               <Route path="/logs" element={<Protected><AgentLogs /></Protected>} />
               <Route path="/schools" element={<Protected><SchoolsAdmin /></Protected>} />
               <Route path="/meta-mappings" element={<Protected><MetaMappingsAdmin /></Protected>} />
