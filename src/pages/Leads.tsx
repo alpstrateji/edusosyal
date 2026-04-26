@@ -1,15 +1,24 @@
 import { useMemo, useState } from "react";
-import { Search, Users, Phone, MessageSquare, Filter } from "lucide-react";
+import {
+  Search,
+  Users,
+  Phone,
+  MessageSquare,
+  Filter,
+  Download,
+  ArrowUpDown,
+  ArrowDown,
+  ArrowUp,
+} from "lucide-react";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -57,6 +66,11 @@ const STATUS_CLASS: Record<string, string> = {
 const STATUS_OPTIONS = ["new", "contacted", "replied", "qualified", "converted", "lost"];
 const INTENT_OPTIONS = ["high", "medium", "low", "unknown"];
 
+const INTENT_RANK: Record<string, number> = { high: 3, medium: 2, low: 1, unknown: 0 };
+
+type SortField = "created_at" | "name" | "intent_score" | "status";
+type SortDir = "asc" | "desc";
+
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
   const m = Math.floor(diff / 60000);
@@ -65,6 +79,60 @@ function timeAgo(iso: string) {
   const h = Math.floor(m / 60);
   if (h < 24) return `${h}h ago`;
   return `${Math.floor(h / 24)}d ago`;
+}
+
+function csvEscape(v: unknown): string {
+  if (v == null) return "";
+  const s = String(v);
+  if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
+
+function downloadCsv(rows: Lead[], schoolMap: Record<string, string>) {
+  const headers = [
+    "id",
+    "name",
+    "phone",
+    "school",
+    "source",
+    "status",
+    "intent_level",
+    "intent_score",
+    "score_reason",
+    "replied_at",
+    "scored_at",
+    "created_at",
+  ];
+  const lines = [headers.join(",")];
+  rows.forEach((l) => {
+    lines.push(
+      [
+        l.id,
+        l.name,
+        l.phone,
+        schoolMap[l.school_id] ?? "",
+        l.source ?? "",
+        l.status ?? "",
+        l.intent_level ?? "",
+        l.intent_score ?? "",
+        l.score_reason ?? "",
+        l.replied_at ?? "",
+        l.scored_at ?? "",
+        l.created_at,
+      ]
+        .map(csvEscape)
+        .join(","),
+    );
+  });
+  const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `leads-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 export default function Leads() {
@@ -77,6 +145,10 @@ export default function Leads() {
   const [schoolFilter, setSchoolFilter] = useState<string>("all");
   const [selected, setSelected] = useState<Lead | null>(null);
   const [updating, setUpdating] = useState(false);
+  const [bulkUpdating, setBulkUpdating] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [sortField, setSortField] = useState<SortField>("created_at");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
 
   const schoolMap = useMemo(
     () => Object.fromEntries(schools.map((s) => [s.id, s.name])),
@@ -85,7 +157,7 @@ export default function Leads() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return leads.filter((l) => {
+    const list = leads.filter((l) => {
       if (statusFilter !== "all" && (l.status ?? "new") !== statusFilter) return false;
       if (intentFilter !== "all" && (l.intent_level ?? "unknown") !== intentFilter) return false;
       if (schoolFilter !== "all" && l.school_id !== schoolFilter) return false;
@@ -96,7 +168,31 @@ export default function Leads() {
         (schoolMap[l.school_id] ?? "").toLowerCase().includes(q)
       );
     });
-  }, [leads, query, statusFilter, intentFilter, schoolFilter, schoolMap]);
+
+    const dir = sortDir === "asc" ? 1 : -1;
+    list.sort((a, b) => {
+      let av: number | string;
+      let bv: number | string;
+      if (sortField === "intent_score") {
+        // Combine numeric score with level rank as tiebreaker.
+        av = a.intent_score != null ? Number(a.intent_score) : INTENT_RANK[a.intent_level ?? "unknown"] / 10;
+        bv = b.intent_score != null ? Number(b.intent_score) : INTENT_RANK[b.intent_level ?? "unknown"] / 10;
+      } else if (sortField === "created_at") {
+        av = new Date(a.created_at).getTime();
+        bv = new Date(b.created_at).getTime();
+      } else if (sortField === "name") {
+        av = a.name.toLowerCase();
+        bv = b.name.toLowerCase();
+      } else {
+        av = a.status ?? "";
+        bv = b.status ?? "";
+      }
+      if (av < bv) return -1 * dir;
+      if (av > bv) return 1 * dir;
+      return 0;
+    });
+    return list;
+  }, [leads, query, statusFilter, intentFilter, schoolFilter, schoolMap, sortField, sortDir]);
 
   const counts = useMemo(() => {
     const total = leads.length;
@@ -106,12 +202,37 @@ export default function Leads() {
     return { total, high, newCount, replied };
   }, [leads]);
 
+  const allFilteredSelected =
+    filtered.length > 0 && filtered.every((l) => selectedIds.has(l.id));
+  const someSelected = selectedIds.size > 0;
+
+  function toggleSort(field: SortField) {
+    if (sortField === field) {
+      setSortDir(sortDir === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDir(field === "name" || field === "status" ? "asc" : "desc");
+    }
+  }
+
+  function toggleAll(checked: boolean) {
+    if (checked) {
+      setSelectedIds(new Set(filtered.map((l) => l.id)));
+    } else {
+      setSelectedIds(new Set());
+    }
+  }
+
+  function toggleOne(id: string, checked: boolean) {
+    const next = new Set(selectedIds);
+    if (checked) next.add(id);
+    else next.delete(id);
+    setSelectedIds(next);
+  }
+
   async function updateStatus(lead: Lead, status: string) {
     setUpdating(true);
-    const { error } = await supabase
-      .from("leads")
-      .update({ status })
-      .eq("id", lead.id);
+    const { error } = await supabase.from("leads").update({ status }).eq("id", lead.id);
     setUpdating(false);
     if (error) {
       toast.error(`Failed to update: ${error.message}`);
@@ -120,6 +241,34 @@ export default function Leads() {
     toast.success(`Status updated to ${status}`);
     setSelected({ ...lead, status });
     refetch();
+  }
+
+  async function bulkUpdateStatus(status: string) {
+    if (!selectedIds.size) return;
+    setBulkUpdating(true);
+    const ids = Array.from(selectedIds);
+    const { error } = await supabase.from("leads").update({ status }).in("id", ids);
+    setBulkUpdating(false);
+    if (error) {
+      toast.error(`Bulk update failed: ${error.message}`);
+      return;
+    }
+    toast.success(`Updated ${ids.length} leads to "${status}"`);
+    setSelectedIds(new Set());
+    refetch();
+  }
+
+  function exportCsv(scope: "filtered" | "selected") {
+    const rows =
+      scope === "selected"
+        ? filtered.filter((l) => selectedIds.has(l.id))
+        : filtered;
+    if (!rows.length) {
+      toast.error("Nothing to export");
+      return;
+    }
+    downloadCsv(rows, schoolMap);
+    toast.success(`Exported ${rows.length} leads`);
   }
 
   return (
@@ -134,9 +283,19 @@ export default function Leads() {
           </div>
           <h1 className="text-2xl font-semibold tracking-tight">Leads</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            All inbound leads across schools — search, filter, and update status.
+            All inbound leads across schools — search, filter, sort, and update in bulk.
           </p>
         </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-9 gap-1.5"
+          onClick={() => exportCsv("filtered")}
+          disabled={!filtered.length}
+        >
+          <Download className="h-3.5 w-3.5" />
+          Export CSV ({filtered.length})
+        </Button>
       </div>
 
       {/* Quick stats */}
@@ -203,6 +362,51 @@ export default function Leads() {
             </div>
           </div>
         </CardHeader>
+
+        {/* Bulk action bar */}
+        {someSelected && (
+          <div className="px-5 py-3 border-y border-border/60 bg-muted/30 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm">
+              <span className="font-medium">{selectedIds.size}</span> selected
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <Select
+                value=""
+                onValueChange={(v) => bulkUpdateStatus(v)}
+                disabled={bulkUpdating}
+              >
+                <SelectTrigger className="h-8 w-[180px] text-xs">
+                  <SelectValue placeholder="Set status to…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {STATUS_OPTIONS.map((s) => (
+                    <SelectItem key={s} value={s} className="capitalize">
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 gap-1.5"
+                onClick={() => exportCsv("selected")}
+              >
+                <Download className="h-3.5 w-3.5" />
+                Export selected
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8"
+                onClick={() => setSelectedIds(new Set())}
+              >
+                Clear
+              </Button>
+            </div>
+          </div>
+        )}
+
         <CardContent className="p-0">
           {loading ? (
             <div className="text-sm text-muted-foreground py-12 text-center">
@@ -216,24 +420,64 @@ export default function Leads() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={allFilteredSelected}
+                      onCheckedChange={(c) => toggleAll(!!c)}
+                      aria-label="Select all"
+                    />
+                  </TableHead>
+                  <SortHeader
+                    label="Name"
+                    field="name"
+                    sortField={sortField}
+                    sortDir={sortDir}
+                    onClick={toggleSort}
+                  />
                   <TableHead>School</TableHead>
                   <TableHead>Source</TableHead>
-                  <TableHead>Intent</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created</TableHead>
+                  <SortHeader
+                    label="Intent"
+                    field="intent_score"
+                    sortField={sortField}
+                    sortDir={sortDir}
+                    onClick={toggleSort}
+                  />
+                  <SortHeader
+                    label="Status"
+                    field="status"
+                    sortField={sortField}
+                    sortDir={sortDir}
+                    onClick={toggleSort}
+                  />
+                  <SortHeader
+                    label="Created"
+                    field="created_at"
+                    sortField={sortField}
+                    sortDir={sortDir}
+                    onClick={toggleSort}
+                  />
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.map((l) => {
                   const level = (l.intent_level ?? "unknown") as keyof typeof INTENT_CLASS;
                   const status = (l.status ?? "new") as keyof typeof STATUS_CLASS;
+                  const isSelected = selectedIds.has(l.id);
                   return (
                     <TableRow
                       key={l.id}
+                      data-state={isSelected ? "selected" : undefined}
                       className="cursor-pointer"
                       onClick={() => setSelected(l)}
                     >
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={(c) => toggleOne(l.id, !!c)}
+                          aria-label={`Select ${l.name}`}
+                        />
+                      </TableCell>
                       <TableCell>
                         <div className="font-medium text-sm">{l.name}</div>
                         <div className="text-[11px] text-muted-foreground">{l.phone}</div>
@@ -388,6 +632,38 @@ export default function Leads() {
         </SheetContent>
       </Sheet>
     </div>
+  );
+}
+
+function SortHeader({
+  label,
+  field,
+  sortField,
+  sortDir,
+  onClick,
+}: {
+  label: string;
+  field: SortField;
+  sortField: SortField;
+  sortDir: SortDir;
+  onClick: (f: SortField) => void;
+}) {
+  const active = sortField === field;
+  const Icon = !active ? ArrowUpDown : sortDir === "asc" ? ArrowUp : ArrowDown;
+  return (
+    <TableHead>
+      <button
+        type="button"
+        onClick={() => onClick(field)}
+        className={cn(
+          "inline-flex items-center gap-1 hover:text-foreground transition-colors",
+          active && "text-foreground",
+        )}
+      >
+        {label}
+        <Icon className="h-3 w-3" />
+      </button>
+    </TableHead>
   );
 }
 
