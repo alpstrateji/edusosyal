@@ -392,6 +392,18 @@ export default function Leads() {
                   ))}
                 </SelectContent>
               </Select>
+              <Select value={replyFilter} onValueChange={setReplyFilter}>
+                <SelectTrigger className="h-9 w-[140px]">
+                  <SelectValue placeholder="Reply" />
+                </SelectTrigger>
+                <SelectContent>
+                  {REPLY_OPTIONS.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      {o.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </CardHeader>
