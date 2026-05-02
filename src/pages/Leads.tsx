@@ -155,12 +155,14 @@ export default function Leads() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [intentFilter, setIntentFilter] = useState<string>("all");
   const [schoolFilter, setSchoolFilter] = useState<string>("all");
+  const [replyFilter, setReplyFilter] = useState<string>("all");
   const [selected, setSelected] = useState<Lead | null>(null);
   const [updating, setUpdating] = useState(false);
   const [bulkUpdating, setBulkUpdating] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [sortField, setSortField] = useState<SortField>("created_at");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [rowAction, setRowAction] = useState<{ id: string; kind: "send" | "ai" } | null>(null);
 
   const schoolMap = useMemo(
     () => Object.fromEntries(schools.map((s) => [s.id, s.name])),
@@ -173,6 +175,8 @@ export default function Leads() {
       if (statusFilter !== "all" && (l.status ?? "new") !== statusFilter) return false;
       if (intentFilter !== "all" && (l.intent_level ?? "unknown") !== intentFilter) return false;
       if (schoolFilter !== "all" && l.school_id !== schoolFilter) return false;
+      if (replyFilter === "replied" && !l.replied_at) return false;
+      if (replyFilter === "not_replied" && l.replied_at) return false;
       if (!q) return true;
       return (
         l.name.toLowerCase().includes(q) ||
@@ -204,7 +208,24 @@ export default function Leads() {
       return 0;
     });
     return list;
-  }, [leads, query, statusFilter, intentFilter, schoolFilter, schoolMap, sortField, sortDir]);
+  }, [leads, query, statusFilter, intentFilter, schoolFilter, replyFilter, schoolMap, sortField, sortDir]);
+
+  async function quickAiReply(lead: Lead, send: boolean) {
+    setRowAction({ id: lead.id, kind: send ? "send" : "ai" });
+    const res = await generateAiReply(lead.id, send);
+    setRowAction(null);
+    if (!res.success) {
+      toast.error(`AI failed: ${res.error ?? "unknown"}`);
+      return;
+    }
+    if (send) {
+      toast.success("AI reply sent");
+      refetch();
+    } else if (res.text) {
+      // No drawer open — just let the user know it's queued in their pipeline.
+      toast.success("Draft generated — open the lead to review");
+    }
+  }
 
   const counts = useMemo(() => {
     const total = leads.length;
