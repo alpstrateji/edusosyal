@@ -1,4 +1,4 @@
-import { LayoutDashboard, Terminal, School, MessageSquare, Sparkles, Tag, Users, Megaphone } from "lucide-react";
+import { LayoutDashboard, Terminal, School, MessageSquare, Sparkles, Tag, Users, Megaphone, Settings } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -21,6 +21,7 @@ const mainItems = [
   { title: "Schools", url: "/schools", icon: School },
   { title: "Agent Logs", url: "/logs", icon: Terminal },
   { title: "Meta Mappings", url: "/meta-mappings", icon: Tag },
+  { title: "Settings", url: "/settings", icon: Settings },
 ];
 
 const stubItems = [

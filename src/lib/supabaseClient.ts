@@ -42,6 +42,8 @@ export interface Campaign {
 
 export type IntentLevel = "high" | "medium" | "low" | "unknown";
 
+export type MessageProvider = "telegram" | "whatsapp" | "console";
+
 export interface Lead {
   id: string;
   school_id: string;
@@ -56,7 +58,31 @@ export interface Lead {
   score_reason?: string | null;
   scored_at?: string | null;
   replied_at?: string | null;
+  last_reply_text?: string | null;
+  whatsapp_sent_at?: string | null;
+  telegram_chat_id?: number | null;
+  last_message_text?: string | null;
+  last_message_at?: string | null;
+  last_provider?: MessageProvider | null;
   created_at: string;
+}
+
+export interface LeadMessage {
+  id: string;
+  lead_id: string;
+  school_id: string;
+  direction: "outgoing" | "incoming";
+  provider: MessageProvider;
+  body: string;
+  external_id: string | null;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+}
+
+export interface AppSetting {
+  key: string;
+  value: unknown;
+  updated_at: string;
 }
 
 export interface AgentLogRow {

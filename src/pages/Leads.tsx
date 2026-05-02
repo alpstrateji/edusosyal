@@ -9,6 +9,10 @@ import {
   ArrowUpDown,
   ArrowDown,
   ArrowUp,
+  Sparkles,
+  Send,
+  Loader2,
+  CheckCircle2,
 } from "lucide-react";
 import {
   Card,
@@ -46,6 +50,8 @@ import { useSchools } from "@/hooks/useSchools";
 import { supabase, type Lead } from "@/lib/supabaseClient";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { ConversationPanel } from "@/components/leads/ConversationPanel";
+import { generateAiReply } from "@/lib/messagingService";
 
 const INTENT_CLASS: Record<string, string> = {
   high: "bg-success/10 text-success border-success/20",
@@ -65,11 +71,17 @@ const STATUS_CLASS: Record<string, string> = {
 
 const STATUS_OPTIONS = ["new", "contacted", "replied", "qualified", "converted", "lost"];
 const INTENT_OPTIONS = ["high", "medium", "low", "unknown"];
+const REPLY_OPTIONS = [
+  { value: "all", label: "All replies" },
+  { value: "replied", label: "Replied" },
+  { value: "not_replied", label: "Not replied" },
+];
 
 const INTENT_RANK: Record<string, number> = { high: 3, medium: 2, low: 1, unknown: 0 };
 
 type SortField = "created_at" | "name" | "intent_score" | "status";
 type SortDir = "asc" | "desc";
+
 
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
@@ -143,12 +155,14 @@ export default function Leads() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [intentFilter, setIntentFilter] = useState<string>("all");
   const [schoolFilter, setSchoolFilter] = useState<string>("all");
+  const [replyFilter, setReplyFilter] = useState<string>("all");
   const [selected, setSelected] = useState<Lead | null>(null);
   const [updating, setUpdating] = useState(false);
   const [bulkUpdating, setBulkUpdating] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [sortField, setSortField] = useState<SortField>("created_at");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [rowAction, setRowAction] = useState<{ id: string; kind: "send" | "ai" } | null>(null);
 
   const schoolMap = useMemo(
     () => Object.fromEntries(schools.map((s) => [s.id, s.name])),
@@ -161,6 +175,8 @@ export default function Leads() {
       if (statusFilter !== "all" && (l.status ?? "new") !== statusFilter) return false;
       if (intentFilter !== "all" && (l.intent_level ?? "unknown") !== intentFilter) return false;
       if (schoolFilter !== "all" && l.school_id !== schoolFilter) return false;
+      if (replyFilter === "replied" && !l.replied_at) return false;
+      if (replyFilter === "not_replied" && l.replied_at) return false;
       if (!q) return true;
       return (
         l.name.toLowerCase().includes(q) ||
@@ -192,7 +208,24 @@ export default function Leads() {
       return 0;
     });
     return list;
-  }, [leads, query, statusFilter, intentFilter, schoolFilter, schoolMap, sortField, sortDir]);
+  }, [leads, query, statusFilter, intentFilter, schoolFilter, replyFilter, schoolMap, sortField, sortDir]);
+
+  async function quickAiReply(lead: Lead, send: boolean) {
+    setRowAction({ id: lead.id, kind: send ? "send" : "ai" });
+    const res = await generateAiReply(lead.id, send);
+    setRowAction(null);
+    if (!res.success) {
+      toast.error(`AI failed: ${res.error ?? "unknown"}`);
+      return;
+    }
+    if (send) {
+      toast.success("AI reply sent");
+      refetch();
+    } else if (res.text) {
+      // No drawer open — just let the user know it's queued in their pipeline.
+      toast.success("Draft generated — open the lead to review");
+    }
+  }
 
   const counts = useMemo(() => {
     const total = leads.length;
@@ -359,6 +392,18 @@ export default function Leads() {
                   ))}
                 </SelectContent>
               </Select>
+              <Select value={replyFilter} onValueChange={setReplyFilter}>
+                <SelectTrigger className="h-9 w-[140px]">
+                  <SelectValue placeholder="Reply" />
+                </SelectTrigger>
+                <SelectContent>
+                  {REPLY_OPTIONS.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      {o.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </CardHeader>
@@ -457,6 +502,8 @@ export default function Leads() {
                     sortDir={sortDir}
                     onClick={toggleSort}
                   />
+                  <TableHead>Last activity</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -512,6 +559,44 @@ export default function Leads() {
                       <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
                         {timeAgo(l.created_at)}
                       </TableCell>
+                      <TableCell className="text-xs whitespace-nowrap">
+                        <ActivityCell lead={l} />
+                      </TableCell>
+                      <TableCell
+                        className="text-right whitespace-nowrap"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="inline-flex gap-1">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7"
+                            title="Generate AI reply (draft)"
+                            disabled={rowAction?.id === l.id}
+                            onClick={() => quickAiReply(l, false)}
+                          >
+                            {rowAction?.id === l.id && rowAction.kind === "ai" ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Sparkles className="h-3.5 w-3.5" />
+                            )}
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7"
+                            title="Generate &amp; send AI reply"
+                            disabled={rowAction?.id === l.id}
+                            onClick={() => quickAiReply(l, true)}
+                          >
+                            {rowAction?.id === l.id && rowAction.kind === "send" ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Send className="h-3.5 w-3.5" />
+                            )}
+                          </Button>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   );
                 })}
@@ -523,7 +608,7 @@ export default function Leads() {
 
       {/* Detail Sheet */}
       <Sheet open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
-        <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
           {selected && (
             <>
               <SheetHeader className="space-y-2">
@@ -558,6 +643,12 @@ export default function Leads() {
                     label="Created"
                     value={new Date(selected.created_at).toLocaleString()}
                   />
+                  {selected.whatsapp_sent_at && (
+                    <DetailField
+                      label="First sent"
+                      value={new Date(selected.whatsapp_sent_at).toLocaleString()}
+                    />
+                  )}
                   {selected.replied_at && (
                     <DetailField
                       label="Replied"
@@ -603,10 +694,9 @@ export default function Leads() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <p className="text-[11px] text-muted-foreground">
-                    Changes apply immediately and refresh the list.
-                  </p>
                 </div>
+
+                <ConversationPanel leadId={selected.id} onChanged={refetch} />
 
                 <div className="flex gap-2 pt-2">
                   <Button asChild variant="outline" size="sm" className="flex-1 gap-1.5">
@@ -615,14 +705,14 @@ export default function Leads() {
                       Call
                     </a>
                   </Button>
-                  <Button asChild size="sm" className="flex-1 gap-1.5">
+                  <Button asChild variant="outline" size="sm" className="flex-1 gap-1.5">
                     <a
                       href={`https://wa.me/${selected.phone.replace(/[^\d]/g, "")}`}
                       target="_blank"
                       rel="noreferrer"
                     >
                       <MessageSquare className="h-3.5 w-3.5" />
-                      WhatsApp
+                      Open WhatsApp
                     </a>
                   </Button>
                 </div>
@@ -706,4 +796,25 @@ function DetailField({ label, value }: { label: string; value: React.ReactNode }
       <div className="text-sm">{value}</div>
     </div>
   );
+}
+
+function ActivityCell({ lead }: { lead: Lead }) {
+  if (lead.replied_at) {
+    return (
+      <div className="flex items-center gap-1.5 text-success">
+        <CheckCircle2 className="h-3 w-3" />
+        <span>Replied · {timeAgo(lead.replied_at)}</span>
+      </div>
+    );
+  }
+  if (lead.whatsapp_sent_at || lead.last_message_at) {
+    const ts = lead.last_message_at ?? lead.whatsapp_sent_at!;
+    return (
+      <div className="flex items-center gap-1.5 text-muted-foreground">
+        <Send className="h-3 w-3" />
+        <span>Sent · {timeAgo(ts)}</span>
+      </div>
+    );
+  }
+  return <span className="text-muted-foreground">—</span>;
 }
