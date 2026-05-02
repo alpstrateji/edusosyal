@@ -9,6 +9,10 @@ import {
   ArrowUpDown,
   ArrowDown,
   ArrowUp,
+  Sparkles,
+  Send,
+  Loader2,
+  CheckCircle2,
 } from "lucide-react";
 import {
   Card,
@@ -46,6 +50,8 @@ import { useSchools } from "@/hooks/useSchools";
 import { supabase, type Lead } from "@/lib/supabaseClient";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { ConversationPanel } from "@/components/leads/ConversationPanel";
+import { generateAiReply, sendMessage as sendLeadMessage } from "@/lib/messagingService";
 
 const INTENT_CLASS: Record<string, string> = {
   high: "bg-success/10 text-success border-success/20",
@@ -65,11 +71,17 @@ const STATUS_CLASS: Record<string, string> = {
 
 const STATUS_OPTIONS = ["new", "contacted", "replied", "qualified", "converted", "lost"];
 const INTENT_OPTIONS = ["high", "medium", "low", "unknown"];
+const REPLY_OPTIONS = [
+  { value: "all", label: "All replies" },
+  { value: "replied", label: "Replied" },
+  { value: "not_replied", label: "Not replied" },
+];
 
 const INTENT_RANK: Record<string, number> = { high: 3, medium: 2, low: 1, unknown: 0 };
 
 type SortField = "created_at" | "name" | "intent_score" | "status";
 type SortDir = "asc" | "desc";
+
 
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
