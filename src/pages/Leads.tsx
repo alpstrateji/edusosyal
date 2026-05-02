@@ -51,7 +51,7 @@ import { supabase, type Lead } from "@/lib/supabaseClient";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { ConversationPanel } from "@/components/leads/ConversationPanel";
-import { generateAiReply, sendMessage as sendLeadMessage } from "@/lib/messagingService";
+import { generateAiReply } from "@/lib/messagingService";
 
 const INTENT_CLASS: Record<string, string> = {
   high: "bg-success/10 text-success border-success/20",
@@ -796,4 +796,25 @@ function DetailField({ label, value }: { label: string; value: React.ReactNode }
       <div className="text-sm">{value}</div>
     </div>
   );
+}
+
+function ActivityCell({ lead }: { lead: Lead }) {
+  if (lead.replied_at) {
+    return (
+      <div className="flex items-center gap-1.5 text-success">
+        <CheckCircle2 className="h-3 w-3" />
+        <span>Replied · {timeAgo(lead.replied_at)}</span>
+      </div>
+    );
+  }
+  if (lead.whatsapp_sent_at || lead.last_message_at) {
+    const ts = lead.last_message_at ?? lead.whatsapp_sent_at!;
+    return (
+      <div className="flex items-center gap-1.5 text-muted-foreground">
+        <Send className="h-3 w-3" />
+        <span>Sent · {timeAgo(ts)}</span>
+      </div>
+    );
+  }
+  return <span className="text-muted-foreground">—</span>;
 }
