@@ -502,6 +502,8 @@ export default function Leads() {
                     sortDir={sortDir}
                     onClick={toggleSort}
                   />
+                  <TableHead>Last activity</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -556,6 +558,44 @@ export default function Leads() {
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
                         {timeAgo(l.created_at)}
+                      </TableCell>
+                      <TableCell className="text-xs whitespace-nowrap">
+                        <ActivityCell lead={l} />
+                      </TableCell>
+                      <TableCell
+                        className="text-right whitespace-nowrap"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="inline-flex gap-1">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7"
+                            title="Generate AI reply (draft)"
+                            disabled={rowAction?.id === l.id}
+                            onClick={() => quickAiReply(l, false)}
+                          >
+                            {rowAction?.id === l.id && rowAction.kind === "ai" ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Sparkles className="h-3.5 w-3.5" />
+                            )}
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7"
+                            title="Generate &amp; send AI reply"
+                            disabled={rowAction?.id === l.id}
+                            onClick={() => quickAiReply(l, true)}
+                          >
+                            {rowAction?.id === l.id && rowAction.kind === "send" ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Send className="h-3.5 w-3.5" />
+                            )}
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
