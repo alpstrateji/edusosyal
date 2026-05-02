@@ -1,0 +1,34 @@
+project_id = "iqiqlpzhdawjfrndrikb"
+
+# Edge function configuration. All messaging functions must run with
+# verify_jwt=false because (a) the Telegram webhook can't send a Supabase
+# JWT, (b) cron uses the service-role bearer, and (c) our send-message
+# function validates the bearer in code (user JWT or service-role).
+
+[functions.send-message]
+verify_jwt = false
+
+[functions.ai-reply]
+verify_jwt = false
+
+[functions.telegram-webhook]
+verify_jwt = false
+
+[functions.auto-send-cron]
+verify_jwt = false
+
+# Existing functions kept as-is.
+[functions.send-whatsapp-message]
+verify_jwt = false
+
+[functions.whatsapp-inbound]
+verify_jwt = false
+
+[functions.score-lead]
+verify_jwt = false
+
+[functions.generate-recommendations]
+verify_jwt = false
+
+[functions.meta-leads-webhook]
+verify_jwt = false
