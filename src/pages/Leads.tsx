@@ -608,7 +608,7 @@ export default function Leads() {
 
       {/* Detail Sheet */}
       <Sheet open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
-        <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
           {selected && (
             <>
               <SheetHeader className="space-y-2">
@@ -643,6 +643,12 @@ export default function Leads() {
                     label="Created"
                     value={new Date(selected.created_at).toLocaleString()}
                   />
+                  {selected.whatsapp_sent_at && (
+                    <DetailField
+                      label="First sent"
+                      value={new Date(selected.whatsapp_sent_at).toLocaleString()}
+                    />
+                  )}
                   {selected.replied_at && (
                     <DetailField
                       label="Replied"
@@ -688,10 +694,9 @@ export default function Leads() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <p className="text-[11px] text-muted-foreground">
-                    Changes apply immediately and refresh the list.
-                  </p>
                 </div>
+
+                <ConversationPanel leadId={selected.id} onChanged={refetch} />
 
                 <div className="flex gap-2 pt-2">
                   <Button asChild variant="outline" size="sm" className="flex-1 gap-1.5">
@@ -700,14 +705,14 @@ export default function Leads() {
                       Call
                     </a>
                   </Button>
-                  <Button asChild size="sm" className="flex-1 gap-1.5">
+                  <Button asChild variant="outline" size="sm" className="flex-1 gap-1.5">
                     <a
                       href={`https://wa.me/${selected.phone.replace(/[^\d]/g, "")}`}
                       target="_blank"
                       rel="noreferrer"
                     >
                       <MessageSquare className="h-3.5 w-3.5" />
-                      WhatsApp
+                      Open WhatsApp
                     </a>
                   </Button>
                 </div>
