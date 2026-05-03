@@ -28,12 +28,14 @@ Deno.serve(async (req) => {
   const bearer = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
   if (!bearer) return json({ error: "Unauthorized" }, 401);
   const isServiceRole = bearer === SERVICE_ROLE;
+  let callerUserId: string | null = null;
   if (!isServiceRole) {
     const userClient = createClient(SUPABASE_URL, ANON_KEY, {
       global: { headers: { Authorization: `Bearer ${bearer}` } },
     });
     const { data: claims, error } = await userClient.auth.getClaims(bearer);
     if (error || !claims?.claims?.sub) return json({ error: "Unauthorized" }, 401);
+    callerUserId = claims.claims.sub as string;
   }
 
   let body: Body;
@@ -51,6 +53,20 @@ Deno.serve(async (req) => {
     .eq("id", body.lead_id)
     .maybeSingle();
   if (leadErr || !lead) return json({ error: leadErr?.message ?? "Lead not found" }, 404);
+
+  // Authorization: a non-service-role caller must belong to the lead's school
+  // (or be an agency_admin). Prevents cross-school message injection.
+  if (!isServiceRole && callerUserId) {
+    const { data: profile } = await admin
+      .from("user_profiles")
+      .select("role, school_id")
+      .eq("id", callerUserId)
+      .maybeSingle();
+    if (!profile) return json({ error: "Forbidden" }, 403);
+    if (profile.role !== "agency_admin" && profile.school_id !== lead.school_id) {
+      return json({ error: "Forbidden" }, 403);
+    }
+  }
 
   // Default provider: from app_settings, fallback 'telegram'.
   let preferred: Provider = body.provider ?? "telegram";
