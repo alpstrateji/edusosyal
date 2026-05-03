@@ -7,6 +7,8 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { RoleRoute } from "@/components/auth/RoleRoute";
+import { RoleLanding } from "@/components/auth/RoleLanding";
 import Index from "./pages/Index.tsx";
 import AgentLogs from "./pages/AgentLogs.tsx";
 import ComingSoon from "./pages/ComingSoon.tsx";
@@ -38,13 +40,13 @@ const App = () => (
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/dashboard" element={<Protected><Index /></Protected>} />
+              <Route path="/" element={<Protected><RoleLanding /></Protected>} />
+              <Route path="/dashboard" element={<Protected><RoleRoute allow={["agency_admin"]}><Index /></RoleRoute></Protected>} />
               <Route path="/leads" element={<Protected><Leads /></Protected>} />
               <Route path="/logs" element={<Protected><AgentLogs /></Protected>} />
-              <Route path="/schools" element={<Protected><SchoolsAdmin /></Protected>} />
-              <Route path="/campaigns" element={<Protected><CampaignsAdmin /></Protected>} />
-              <Route path="/meta-mappings" element={<Protected><MetaMappingsAdmin /></Protected>} />
+              <Route path="/schools" element={<Protected><RoleRoute allow={["agency_admin"]}><SchoolsAdmin /></RoleRoute></Protected>} />
+              <Route path="/campaigns" element={<Protected><RoleRoute allow={["agency_admin"]}><CampaignsAdmin /></RoleRoute></Protected>} />
+              <Route path="/meta-mappings" element={<Protected><RoleRoute allow={["agency_admin"]}><MetaMappingsAdmin /></RoleRoute></Protected>} />
               <Route path="/settings" element={<Protected><SettingsPage /></Protected>} />
               <Route path="/inbox" element={<Protected><ComingSoon title="WhatsApp Inbox" /></Protected>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
