@@ -14,6 +14,9 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
+import { useAuth } from "@/contexts/AuthContext";
+import { canAccessRoute } from "@/lib/roleRouting";
+
 const mainItems = [
   { title: "Agency Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Leads", url: "/leads", icon: Users },
@@ -32,6 +35,8 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
+  const { profile } = useAuth();
+  const visibleMain = mainItems.filter((i) => canAccessRoute(profile?.role, i.url));
 
   const isActive = (path: string) =>
     path === "/dashboard" ? location.pathname === "/dashboard" : location.pathname.startsWith(path);
@@ -61,7 +66,7 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainItems.map((item) => {
+              {visibleMain.map((item) => {
                 const active = isActive(item.url);
                 return (
                   <SidebarMenuItem key={item.title}>

@@ -16,7 +16,7 @@ export default function Signup() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (session) navigate("/dashboard", { replace: true });
+    if (session) navigate("/", { replace: true });
   }, [session, navigate]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -32,7 +32,7 @@ export default function Signup() {
       toast.error(error);
     } else {
       toast.success("Account created. You're signed in as agency admin.");
-      navigate("/dashboard", { replace: true });
+      navigate("/", { replace: true });
     }
   }
 

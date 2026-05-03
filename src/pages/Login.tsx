@@ -16,7 +16,7 @@ export default function Login() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (session) navigate("/dashboard", { replace: true });
+    if (session) navigate("/", { replace: true });
   }, [session, navigate]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -28,7 +28,7 @@ export default function Login() {
       toast.error(error);
     } else {
       toast.success("Welcome back");
-      navigate("/dashboard", { replace: true });
+      navigate("/", { replace: true });
     }
   }
 
