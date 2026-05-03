@@ -37,6 +37,11 @@ Deno.serve(async (req) => {
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
   if (!LOVABLE_API_KEY) return json({ error: "LOVABLE_API_KEY not set" }, 500);
 
+  // Service-role only: this function is invoked by DB trigger / cron / admin.
+  // No public callers — quota and data integrity must be protected.
+  const bearer = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+  if (bearer !== SERVICE_ROLE) return json({ error: "Unauthorized" }, 401);
+
   const body = await req.json().catch(() => ({}));
   const lead_id: string | undefined = body?.lead_id;
   if (!lead_id) return json({ error: "lead_id required" }, 400);

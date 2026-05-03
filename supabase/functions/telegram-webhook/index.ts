@@ -24,11 +24,14 @@ Deno.serve(async (req) => {
   const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
   // Verify the shared secret. Telegram sends it as a header — anything else
-  // is a forged request.
-  if (SECRET) {
-    const got = req.headers.get("X-Telegram-Bot-Api-Secret-Token");
-    if (got !== SECRET) return json({ error: "Forbidden" }, 403);
+  // is a forged request. The secret is MANDATORY: without it, anyone could
+  // forge inbound updates and trigger AI auto-replies on arbitrary leads.
+  if (!SECRET) {
+    console.error("telegram-webhook: TELEGRAM_WEBHOOK_SECRET not configured");
+    return json({ error: "Webhook secret not configured" }, 500);
   }
+  const got = req.headers.get("X-Telegram-Bot-Api-Secret-Token");
+  if (got !== SECRET) return json({ error: "Forbidden" }, 403);
 
   let payload: Record<string, unknown>;
   try { payload = await req.json(); } catch { return json({ error: "Invalid JSON" }, 400); }

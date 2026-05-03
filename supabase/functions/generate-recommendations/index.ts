@@ -76,6 +76,10 @@ Deno.serve(async (req) => {
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
   if (!LOVABLE_API_KEY) return json({ error: "LOVABLE_API_KEY not set" }, 500);
 
+  // Service-role only: this is a cron-style aggregator; never public.
+  const bearer = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+  if (bearer !== SERVICE_ROLE) return json({ error: "Unauthorized" }, 401);
+
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
   const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 

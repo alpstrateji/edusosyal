@@ -68,13 +68,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       options: { emailRedirectTo: redirectUrl },
     });
     if (error) return { error: error.message };
-    // Promote to agency_admin (per requirement). Trigger created profile already.
-    if (data.user) {
-      await supabase
-        .from("user_profiles")
-        .update({ role: "agency_admin" })
-        .eq("id", data.user.id);
-    }
+    // Role assignment is performed exclusively by the `handle_new_user`
+    // database trigger. Never set roles from the client — that would allow
+    // any user to elevate themselves to agency_admin.
     return { error: null };
   }
 
