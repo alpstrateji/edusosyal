@@ -22,6 +22,7 @@ const mainItems = [
   { title: "Leads", url: "/leads", icon: Users },
   { title: "Campaigns", url: "/campaigns", icon: Megaphone },
   { title: "Schools", url: "/schools", icon: School },
+  { title: "School Setup", url: "/school-setup", icon: School },
   { title: "Agent Logs", url: "/logs", icon: Terminal },
   { title: "Meta Mappings", url: "/meta-mappings", icon: Tag },
   { title: "Settings", url: "/settings", icon: Settings },

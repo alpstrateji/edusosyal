@@ -1,4 +1,4 @@
-import { Activity, IndianRupee, MessageSquare, Reply, Target, TrendingUp, Trophy, UserPlus, Users, Zap } from "lucide-react";
+import { Activity, IndianRupee, MessageSquare, Reply, Send, Target, TrendingUp, Trophy, UserPlus, Users, Zap } from "lucide-react";
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import { LeadsBarChart, PerformanceChart } from "@/components/dashboard/Charts";
 import { AgentStatusGrid } from "@/components/dashboard/AgentStatusGrid";
@@ -12,6 +12,7 @@ import { useCampaigns } from "@/hooks/useCampaigns";
 import { useAgentLogs } from "@/hooks/useAgentLogs";
 import { useFunnelStats } from "@/hooks/useFunnelStats";
 import { useGrowthStats } from "@/hooks/useGrowthStats";
+import { useMessagingStats } from "@/hooks/useMessagingStats";
 
 const inr = (n: number) =>
   "₹" + new Intl.NumberFormat("en-IN", { notation: "compact", maximumFractionDigits: 1 }).format(n);
@@ -24,6 +25,7 @@ export default function AgencyDashboard() {
   const { data: logs } = useAgentLogs();
   const funnel = useFunnelStats();
   const growth = useGrowthStats();
+  const messaging = useMessagingStats();
 
   const totalSpend = campaigns.reduce((a, c) => a + Number(c.spend), 0);
   const activeCampaigns = campaigns.filter((c) => c.status === "active").length;
@@ -97,18 +99,30 @@ export default function AgencyDashboard() {
       </div>
 
       {/* Funnel pulse */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard
-          label="New Leads (last 24h)"
+          label="New Leads (24h)"
           value={funnel.loading ? "…" : funnel.newLeads24h.toString()}
           icon={UserPlus}
           hint="from Meta Lead Ads + manual"
         />
         <KpiCard
-          label="Auto-messages sent (24h)"
-          value={funnel.loading ? "…" : funnel.autoMessages24h.toString()}
+          label="Messages sent (24h)"
+          value={messaging.loading ? "…" : messaging.outbound24h.toString()}
+          icon={Send}
+          hint="Telegram + WhatsApp outbound"
+        />
+        <KpiCard
+          label="Inbound replies (24h)"
+          value={messaging.loading ? "…" : messaging.inbound24h.toString()}
           icon={MessageSquare}
-          hint="WhatsApp via nurturing agent"
+          hint="lead → bot, live count"
+        />
+        <KpiCard
+          label="Response rate (7d)"
+          value={messaging.loading ? "…" : pct(messaging.responseRate7d)}
+          icon={Reply}
+          hint={`${messaging.inbound7d} in / ${messaging.outbound7d} out`}
         />
       </div>
 

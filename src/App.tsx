@@ -20,6 +20,7 @@ import MetaMappingsAdmin from "./pages/MetaMappingsAdmin.tsx";
 import Leads from "./pages/Leads.tsx";
 import CampaignsAdmin from "./pages/CampaignsAdmin.tsx";
 import SettingsPage from "./pages/SettingsPage.tsx";
+import SchoolSetup from "./pages/SchoolSetup.tsx";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +49,7 @@ const App = () => (
               <Route path="/campaigns" element={<Protected><RoleRoute allow={["agency_admin"]}><CampaignsAdmin /></RoleRoute></Protected>} />
               <Route path="/meta-mappings" element={<Protected><RoleRoute allow={["agency_admin"]}><MetaMappingsAdmin /></RoleRoute></Protected>} />
               <Route path="/settings" element={<Protected><SettingsPage /></Protected>} />
+              <Route path="/school-setup" element={<Protected><SchoolSetup /></Protected>} />
               <Route path="/inbox" element={<Protected><ComingSoon title="WhatsApp Inbox" /></Protected>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

@@ -159,6 +159,7 @@ export default function Leads() {
   const [selected, setSelected] = useState<Lead | null>(null);
   const [updating, setUpdating] = useState(false);
   const [bulkUpdating, setBulkUpdating] = useState(false);
+  const [bulkAiRunning, setBulkAiRunning] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [sortField, setSortField] = useState<SortField>("created_at");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -289,6 +290,26 @@ export default function Leads() {
     toast.success(`Updated ${ids.length} leads to "${status}"`);
     setSelectedIds(new Set());
     refetch();
+  }
+
+  async function bulkGenerateDrafts() {
+    if (!selectedIds.size) return;
+    setBulkAiRunning(true);
+    const ids = Array.from(selectedIds);
+    let ok = 0;
+    let failed = 0;
+    // Sequential to respect OpenRouter rate limits.
+    for (const id of ids) {
+      const res = await generateAiReply(id, false);
+      if (res.success) ok += 1;
+      else failed += 1;
+    }
+    setBulkAiRunning(false);
+    if (failed) {
+      toast.warning(`Generated ${ok}/${ids.length} drafts — ${failed} failed`);
+    } else {
+      toast.success(`Generated ${ok} AI drafts`);
+    }
   }
 
   function exportCsv(scope: "filtered" | "selected") {
@@ -431,6 +452,20 @@ export default function Leads() {
                   ))}
                 </SelectContent>
               </Select>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 gap-1.5"
+                onClick={() => bulkGenerateDrafts()}
+                disabled={bulkAiRunning}
+              >
+                {bulkAiRunning ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Sparkles className="h-3.5 w-3.5" />
+                )}
+                Bulk AI draft
+              </Button>
               <Button
                 size="sm"
                 variant="outline"
@@ -696,7 +731,12 @@ export default function Leads() {
                   </Select>
                 </div>
 
-                <ConversationPanel leadId={selected.id} onChanged={refetch} />
+                <ConversationPanel
+                  leadId={selected.id}
+                  leadName={selected.name}
+                  schoolName={schoolMap[selected.school_id]}
+                  onChanged={refetch}
+                />
 
                 <div className="flex gap-2 pt-2">
                   <Button asChild variant="outline" size="sm" className="flex-1 gap-1.5">
