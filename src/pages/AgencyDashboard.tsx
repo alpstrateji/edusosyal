@@ -1,4 +1,4 @@
-import { Activity, IndianRupee, MessageSquare, Reply, Target, TrendingUp, Trophy, UserPlus, Users, Zap } from "lucide-react";
+import { Activity, IndianRupee, MessageSquare, Reply, Send, Target, TrendingUp, Trophy, UserPlus, Users, Zap } from "lucide-react";
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import { LeadsBarChart, PerformanceChart } from "@/components/dashboard/Charts";
 import { AgentStatusGrid } from "@/components/dashboard/AgentStatusGrid";
@@ -12,6 +12,7 @@ import { useCampaigns } from "@/hooks/useCampaigns";
 import { useAgentLogs } from "@/hooks/useAgentLogs";
 import { useFunnelStats } from "@/hooks/useFunnelStats";
 import { useGrowthStats } from "@/hooks/useGrowthStats";
+import { useMessagingStats } from "@/hooks/useMessagingStats";
 
 const inr = (n: number) =>
   "₹" + new Intl.NumberFormat("en-IN", { notation: "compact", maximumFractionDigits: 1 }).format(n);
