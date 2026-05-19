@@ -292,6 +292,26 @@ export default function Leads() {
     refetch();
   }
 
+  async function bulkGenerateDrafts() {
+    if (!selectedIds.size) return;
+    setBulkAiRunning(true);
+    const ids = Array.from(selectedIds);
+    let ok = 0;
+    let failed = 0;
+    // Sequential to respect OpenRouter rate limits.
+    for (const id of ids) {
+      const res = await generateAiReply(id, false);
+      if (res.success) ok += 1;
+      else failed += 1;
+    }
+    setBulkAiRunning(false);
+    if (failed) {
+      toast.warning(`Generated ${ok}/${ids.length} drafts — ${failed} failed`);
+    } else {
+      toast.success(`Generated ${ok} AI drafts`);
+    }
+  }
+
   function exportCsv(scope: "filtered" | "selected") {
     const rows =
       scope === "selected"
