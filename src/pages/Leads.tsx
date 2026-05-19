@@ -159,6 +159,7 @@ export default function Leads() {
   const [selected, setSelected] = useState<Lead | null>(null);
   const [updating, setUpdating] = useState(false);
   const [bulkUpdating, setBulkUpdating] = useState(false);
+  const [bulkAiRunning, setBulkAiRunning] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [sortField, setSortField] = useState<SortField>("created_at");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -431,6 +432,20 @@ export default function Leads() {
                   ))}
                 </SelectContent>
               </Select>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 gap-1.5"
+                onClick={() => bulkGenerateDrafts()}
+                disabled={bulkAiRunning}
+              >
+                {bulkAiRunning ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Sparkles className="h-3.5 w-3.5" />
+                )}
+                Bulk AI draft
+              </Button>
               <Button
                 size="sm"
                 variant="outline"
