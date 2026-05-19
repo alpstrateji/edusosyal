@@ -1,19 +1,30 @@
 import { useEffect, useRef, useState } from "react";
-import { Send, Sparkles, Loader2, MessageSquare } from "lucide-react";
+import { Send, Sparkles, Loader2, MessageSquare, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useLeadMessages } from "@/hooks/useLeadMessages";
 import { sendMessage, generateAiReply } from "@/lib/messagingService";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { QUICK_REPLIES, applyTemplate } from "@/lib/quickReplies";
 
 interface Props {
   leadId: string;
+  leadName?: string | null;
+  schoolName?: string | null;
   onChanged?: () => void; // bubble back so parent can refresh leads list
 }
 
-export function ConversationPanel({ leadId, onChanged }: Props) {
+export function ConversationPanel({ leadId, leadName, schoolName, onChanged }: Props) {
   const { data: messages, loading, refetch } = useLeadMessages(leadId);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
@@ -60,14 +71,20 @@ export function ConversationPanel({ leadId, onChanged }: Props) {
     }
   }
 
+  function applyQuickReply(body: string) {
+    const filled = applyTemplate(body, { name: leadName, school: schoolName });
+    setDraft(filled);
+  }
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-3">
         <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
           Conversation
         </p>
-        <span className="text-[11px] text-muted-foreground">
-          {messages.length} {messages.length === 1 ? "message" : "messages"}
+        <span className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
+          {messages.length} {messages.length === 1 ? "message" : "messages"} · live
         </span>
       </div>
 
@@ -121,12 +138,38 @@ export function ConversationPanel({ leadId, onChanged }: Props) {
         <Textarea
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          placeholder="Write a message, or generate one with AI…"
+          placeholder="Write a message, generate with AI, or pick a quick reply…"
           rows={3}
           maxLength={1000}
           className="resize-none text-sm"
         />
         <div className="flex flex-wrap items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="sm" variant="outline" className="h-8 gap-1.5">
+                <Zap className="h-3.5 w-3.5" />
+                Quick reply
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-72">
+              <DropdownMenuLabel className="text-[10px] uppercase tracking-wider">
+                Şablonlar
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {QUICK_REPLIES.map((q) => (
+                <DropdownMenuItem
+                  key={q.id}
+                  className="flex flex-col items-start gap-0.5 py-2"
+                  onClick={() => applyQuickReply(q.body)}
+                >
+                  <span className="text-xs font-medium">{q.label}</span>
+                  <span className="text-[10px] text-muted-foreground line-clamp-2">
+                    {applyTemplate(q.body, { name: leadName, school: schoolName })}
+                  </span>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button
             size="sm"
             variant="outline"
@@ -139,7 +182,7 @@ export function ConversationPanel({ leadId, onChanged }: Props) {
             ) : (
               <Sparkles className="h-3.5 w-3.5" />
             )}
-            Generate AI draft
+            AI draft
           </Button>
           <Button
             size="sm"
@@ -149,7 +192,7 @@ export function ConversationPanel({ leadId, onChanged }: Props) {
             disabled={generating || sending}
           >
             <Sparkles className="h-3.5 w-3.5" />
-            Generate &amp; send
+            AI &amp; send
           </Button>
           <div className="flex-1" />
           <Button
