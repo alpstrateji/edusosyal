@@ -696,7 +696,12 @@ export default function Leads() {
                   </Select>
                 </div>
 
-                <ConversationPanel leadId={selected.id} onChanged={refetch} />
+                <ConversationPanel
+                  leadId={selected.id}
+                  leadName={selected.name}
+                  schoolName={schoolMap[selected.school_id]}
+                  onChanged={refetch}
+                />
 
                 <div className="flex gap-2 pt-2">
                   <Button asChild variant="outline" size="sm" className="flex-1 gap-1.5">
