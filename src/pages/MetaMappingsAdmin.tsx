@@ -43,7 +43,7 @@ export default function MetaMappingsAdmin() {
       .from("meta_ad_mappings")
       .select("*")
       .order("created_at", { ascending: false });
-    if (error) toast({ title: "Failed to load mappings", description: error.message, variant: "destructive" });
+    if (error) toast({ title: "Eşlemeler yüklenemedi", description: error.message, variant: "destructive" });
     setRows((data as MetaMapping[]) ?? []);
     setLoading(false);
   }
@@ -54,7 +54,7 @@ export default function MetaMappingsAdmin() {
     const cid = campaignId.trim();
     const lbl = label.trim();
     if (!cid || !lbl || !schoolId) {
-      toast({ title: "Missing fields", description: "School, campaign_id and label are required.", variant: "destructive" });
+      toast({ title: "Eksik alan", description: "Okul, campaign_id ve etiket zorunlu.", variant: "destructive" });
       return;
     }
     setCreating(true);
@@ -65,12 +65,12 @@ export default function MetaMappingsAdmin() {
     });
     setCreating(false);
     if (error) {
-      toast({ title: "Create failed", description: error.message, variant: "destructive" });
+      toast({ title: "Oluşturulamadı", description: error.message, variant: "destructive" });
       return;
     }
     setCampaignId("");
     setLabel("");
-    toast({ title: "Mapping added", description: `${cid} → ${lbl}` });
+    toast({ title: "Eşleme eklendi", description: `${cid} → ${lbl}` });
     load();
   }
 
@@ -81,7 +81,7 @@ export default function MetaMappingsAdmin() {
     };
     const { error } = await supabase.from("meta_ad_mappings").update(updates).eq("id", id);
     if (error) {
-      toast({ title: "Update failed", description: error.message, variant: "destructive" });
+      toast({ title: "Güncellenemedi", description: error.message, variant: "destructive" });
       return;
     }
     setEditingId(null);
@@ -89,13 +89,13 @@ export default function MetaMappingsAdmin() {
   }
 
   async function remove(id: string, label: string | null) {
-    if (!confirm(`Delete mapping "${label ?? id}"?`)) return;
+    if (!confirm(`"${label ?? id}" eşlemesi silinsin mi?`)) return;
     const { error } = await supabase.from("meta_ad_mappings").delete().eq("id", id);
     if (error) {
-      toast({ title: "Delete failed", description: error.message, variant: "destructive" });
+      toast({ title: "Silinemedi", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Deleted" });
+    toast({ title: "Silindi" });
     load();
   }
 
@@ -105,21 +105,22 @@ export default function MetaMappingsAdmin() {
     <div className="px-4 md:px-8 py-6 space-y-6 animate-fade-in">
       <div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1.5">
-          <span>Admin</span>
+          <span>Yönetim</span>
           <span>/</span>
-          <span className="text-foreground">Meta ad mappings</span>
+          <span className="text-foreground">Meta reklam eşlemeleri</span>
         </div>
-        <h1 className="text-2xl font-semibold tracking-tight">Meta ad mappings</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Meta reklam eşlemeleri</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Map a Meta <code className="text-xs">campaign_id</code> to a school + human-readable label.
-          Required so inbound Meta leads route correctly and AI recommendations cite real campaign names.
+          Bir Meta <code className="text-xs">campaign_id</code> değerini bir okula ve okunabilir
+          etikete bağlayın. Bu sayede gelen Meta lead'leri doğru yönlendirilir ve AI önerileri
+          gerçek kampanya adlarını kullanır.
         </p>
       </div>
 
       <Card className="p-4 bg-card border-border shadow-card">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
           <Select value={schoolId} onValueChange={setSchoolId}>
-            <SelectTrigger><SelectValue placeholder="School" /></SelectTrigger>
+            <SelectTrigger><SelectValue placeholder="Okul" /></SelectTrigger>
             <SelectContent>
               {schools.map((s) => (
                 <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
@@ -132,13 +133,13 @@ export default function MetaMappingsAdmin() {
             onChange={(e) => setCampaignId(e.target.value)}
           />
           <Input
-            placeholder="Label (e.g. Class 11 Admissions Q4)"
+            placeholder="Etiket (örn. 11. Sınıf Kayıt Q4)"
             value={label}
             onChange={(e) => setLabel(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") create(); }}
           />
           <Button onClick={create} disabled={creating} size="sm" className="gap-1.5">
-            <Plus className="h-3.5 w-3.5" /> Add mapping
+            <Plus className="h-3.5 w-3.5" /> Eşleme ekle
           </Button>
         </div>
       </Card>
@@ -148,11 +149,11 @@ export default function MetaMappingsAdmin() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/30 text-[11px] uppercase tracking-wider text-muted-foreground">
-                <th className="text-left font-medium px-5 py-2.5">Label</th>
+                <th className="text-left font-medium px-5 py-2.5">Etiket</th>
                 <th className="text-left font-medium px-3 py-2.5">Campaign ID</th>
-                <th className="text-left font-medium px-3 py-2.5">School</th>
-                <th className="text-left font-medium px-3 py-2.5">Created</th>
-                <th className="text-right font-medium px-5 py-2.5">Actions</th>
+                <th className="text-left font-medium px-3 py-2.5">Okul</th>
+                <th className="text-left font-medium px-3 py-2.5">Oluşturma</th>
+                <th className="text-right font-medium px-5 py-2.5">Aksiyonlar</th>
               </tr>
             </thead>
             <tbody>
@@ -161,7 +162,7 @@ export default function MetaMappingsAdmin() {
               )}
               {!loading && rows.length === 0 && (
                 <tr><td colSpan={5} className="px-5 py-8 text-center text-sm text-muted-foreground">
-                  No mappings yet. Add one above so Meta lead webhooks can resolve.
+                  Henüz eşleme yok. Meta lead webhook'larının çözümlenebilmesi için yukarıdan ekleyin.
                 </td></tr>
               )}
               {rows.map((m) => (

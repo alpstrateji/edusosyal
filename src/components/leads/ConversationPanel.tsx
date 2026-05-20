@@ -44,10 +44,10 @@ export function ConversationPanel({ leadId, leadName, schoolName, onChanged }: P
     const res = await sendMessage(leadId, body);
     setSending(false);
     if (!res.success) {
-      toast.error(`Send failed: ${res.error ?? "unknown error"}`);
+      toast.error(`Gönderilemedi: ${res.error ?? "bilinmeyen hata"}`);
       return;
     }
-    toast.success(`Sent via ${res.provider}`);
+    toast.success(`${res.provider} üzerinden gönderildi`);
     setDraft("");
     refetch();
     onChanged?.();
@@ -58,16 +58,16 @@ export function ConversationPanel({ leadId, leadName, schoolName, onChanged }: P
     const res = await generateAiReply(leadId, send);
     setGenerating(false);
     if (!res.success) {
-      toast.error(`AI failed: ${res.error ?? "unknown"}`);
+      toast.error(`AI başarısız: ${res.error ?? "bilinmeyen"}`);
       return;
     }
     if (send) {
-      toast.success(`AI reply sent`);
+      toast.success(`AI yanıtı gönderildi`);
       refetch();
       onChanged?.();
     } else if (res.text) {
       setDraft(res.text);
-      toast.success("Draft generated — review before sending");
+      toast.success("Taslak oluşturuldu — göndermeden önce inceleyin");
     }
   }
 
@@ -80,11 +80,11 @@ export function ConversationPanel({ leadId, leadName, schoolName, onChanged }: P
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-3">
         <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
-          Conversation
+          Sohbet
         </p>
         <span className="text-[11px] text-muted-foreground flex items-center gap-1.5">
           <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
-          {messages.length} {messages.length === 1 ? "message" : "messages"} · live
+          {messages.length} mesaj · canlı
         </span>
       </div>
 
@@ -93,12 +93,12 @@ export function ConversationPanel({ leadId, leadName, schoolName, onChanged }: P
         className="flex-1 min-h-[200px] max-h-[320px] overflow-y-auto rounded-md border border-border/60 bg-muted/20 p-3 space-y-2"
       >
         {loading ? (
-          <p className="text-xs text-muted-foreground text-center py-8">Loading…</p>
+          <p className="text-xs text-muted-foreground text-center py-8">Yükleniyor…</p>
         ) : !messages.length ? (
           <div className="text-center py-10 text-xs text-muted-foreground space-y-2">
             <MessageSquare className="h-6 w-6 mx-auto opacity-40" />
-            <p>No messages yet.</p>
-            <p className="text-[10px]">Generate an AI reply or write one manually below.</p>
+            <p>Henüz mesaj yok.</p>
+            <p className="text-[10px]">AI ile yanıt üretin ya da aşağıdan elle yazın.</p>
           </div>
         ) : (
           messages.map((m) => {
@@ -138,7 +138,7 @@ export function ConversationPanel({ leadId, leadName, schoolName, onChanged }: P
         <Textarea
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          placeholder="Write a message, generate with AI, or pick a quick reply…"
+          placeholder="Bir mesaj yazın, AI ile üretin veya hızlı yanıt seçin…"
           rows={3}
           maxLength={1000}
           className="resize-none text-sm"
@@ -148,7 +148,7 @@ export function ConversationPanel({ leadId, leadName, schoolName, onChanged }: P
             <DropdownMenuTrigger asChild>
               <Button size="sm" variant="outline" className="h-8 gap-1.5">
                 <Zap className="h-3.5 w-3.5" />
-                Quick reply
+                Hızlı yanıt
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-72">
@@ -182,7 +182,7 @@ export function ConversationPanel({ leadId, leadName, schoolName, onChanged }: P
             ) : (
               <Sparkles className="h-3.5 w-3.5" />
             )}
-            AI draft
+            AI taslak
           </Button>
           <Button
             size="sm"
@@ -192,7 +192,7 @@ export function ConversationPanel({ leadId, leadName, schoolName, onChanged }: P
             disabled={generating || sending}
           >
             <Sparkles className="h-3.5 w-3.5" />
-            AI &amp; send
+            AI &amp; gönder
           </Button>
           <div className="flex-1" />
           <Button
@@ -206,7 +206,7 @@ export function ConversationPanel({ leadId, leadName, schoolName, onChanged }: P
             ) : (
               <Send className="h-3.5 w-3.5" />
             )}
-            Send
+            Gönder
           </Button>
         </div>
       </div>
