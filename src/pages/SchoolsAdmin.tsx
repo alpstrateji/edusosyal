@@ -55,7 +55,7 @@ export default function SchoolsAdmin() {
     ]);
 
     if (schoolsRes.error) {
-      toast.error(`Failed to load schools: ${schoolsRes.error.message}`);
+      toast.error(`Okullar yüklenemedi: ${schoolsRes.error.message}`);
       setLoading(false);
       return;
     }
@@ -85,47 +85,47 @@ export default function SchoolsAdmin() {
   async function create() {
     const name = newName.trim();
     if (!name) {
-      toast.error("Name is required");
+      toast.error("İsim zorunlu");
       return;
     }
     if (name.length < 2) {
-      toast.error("Name must be at least 2 characters");
+      toast.error("İsim en az 2 karakter olmalı");
       return;
     }
     if (rows.some((r) => r.name.toLowerCase() === name.toLowerCase())) {
-      toast.error("A school with that name already exists");
+      toast.error("Bu isimde bir okul zaten var");
       return;
     }
     setCreating(true);
     const { error } = await supabase.from("schools").insert({ name });
     setCreating(false);
     if (error) {
-      toast.error(`Create failed: ${error.message}`);
+      toast.error(`Oluşturulamadı: ${error.message}`);
       return;
     }
     setNewName("");
-    toast.success(`School created: ${name}`);
+    toast.success(`Okul oluşturuldu: ${name}`);
     load();
   }
 
   async function save(id: string) {
     const name = editingName.trim();
     if (!name) {
-      toast.error("Name is required");
+      toast.error("İsim zorunlu");
       return;
     }
     if (name.length < 2) {
-      toast.error("Name must be at least 2 characters");
+      toast.error("İsim en az 2 karakter olmalı");
       return;
     }
     const { error } = await supabase.from("schools").update({ name }).eq("id", id);
     if (error) {
-      toast.error(`Update failed: ${error.message}`);
+      toast.error(`Güncellenemedi: ${error.message}`);
       return;
     }
     setEditingId(null);
     setEditingName("");
-    toast.success("School updated");
+    toast.success("Okul güncellendi");
     load();
   }
 
@@ -135,10 +135,10 @@ export default function SchoolsAdmin() {
     const { error } = await supabase.from("schools").delete().eq("id", id);
     setPendingDelete(null);
     if (error) {
-      toast.error(`Delete failed: ${error.message}`);
+      toast.error(`Silinemedi: ${error.message}`);
       return;
     }
-    toast.success(`Deleted: ${name}`);
+    toast.success(`Silindi: ${name}`);
     load();
   }
 
@@ -146,13 +146,13 @@ export default function SchoolsAdmin() {
     <div className="px-4 md:px-8 py-6 space-y-6 animate-fade-in">
       <div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1.5">
-          <span>Admin</span>
+          <span>Yönetim</span>
           <span>/</span>
-          <span className="text-foreground">Schools</span>
+          <span className="text-foreground">Okullar</span>
         </div>
-        <h1 className="text-2xl font-semibold tracking-tight">Schools</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Okullar</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Each school is a tenant. Campaigns, leads and logs scope to it.
+          Her okul ayrı bir tenant'tır. Kampanyalar, lead'ler ve loglar okula göre filtrelenir.
         </p>
       </div>
 
@@ -161,16 +161,16 @@ export default function SchoolsAdmin() {
         <CardHeader className="pb-3">
           <CardTitle className="text-sm flex items-center gap-2">
             <Plus className="h-4 w-4 text-primary" />
-            Add school
+            Okul ekle
           </CardTitle>
           <CardDescription className="text-xs">
-            Create a new tenant. Each school keeps its own campaigns, leads and logs.
+            Yeni bir tenant oluşturun. Her okul kendi kampanya, lead ve loglarını tutar.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-2">
             <Input
-              placeholder="e.g. Greenfield International"
+              placeholder="Örn. Greenfield International"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               onKeyDown={(e) => {
@@ -185,7 +185,7 @@ export default function SchoolsAdmin() {
               size="sm"
               className="gap-1.5 h-9"
             >
-              <Plus className="h-3.5 w-3.5" /> Add
+              <Plus className="h-3.5 w-3.5" /> Ekle
             </Button>
           </div>
         </CardContent>
@@ -197,10 +197,10 @@ export default function SchoolsAdmin() {
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <SchoolIcon className="h-4 w-4 text-primary" />
-              <CardTitle className="text-sm">All schools</CardTitle>
+              <CardTitle className="text-sm">Tüm okullar</CardTitle>
             </div>
             <Badge variant="outline" className="text-[10px]">
-              {rows.length} total
+              {rows.length} toplam
             </Badge>
           </div>
         </CardHeader>
@@ -213,17 +213,17 @@ export default function SchoolsAdmin() {
             </div>
           ) : rows.length === 0 ? (
             <div className="px-5 py-12 text-center text-sm text-muted-foreground">
-              No schools yet. Add one above.
+              Henüz okul yok. Yukarıdan ekleyin.
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead className="text-center">Campaigns</TableHead>
-                  <TableHead className="text-center">Leads</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>İsim</TableHead>
+                  <TableHead className="text-center">Kampanya</TableHead>
+                  <TableHead className="text-center">Lead</TableHead>
+                  <TableHead>Oluşturma</TableHead>
+                  <TableHead className="text-right">Aksiyonlar</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -314,26 +314,26 @@ export default function SchoolsAdmin() {
       <AlertDialog open={!!pendingDelete} onOpenChange={(o) => !o && setPendingDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete "{pendingDelete?.name}"?</AlertDialogTitle>
+            <AlertDialogTitle>"{pendingDelete?.name}" silinsin mi?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the school and cascade to{" "}
+              Bu işlem okulu kalıcı olarak siler ve ilişkili{" "}
               <span className="text-foreground font-medium">
-                {pendingDelete?.campaign_count ?? 0} campaigns
+                {pendingDelete?.campaign_count ?? 0} kampanyayı
               </span>{" "}
-              and{" "}
+              ve{" "}
               <span className="text-foreground font-medium">
-                {pendingDelete?.lead_count ?? 0} leads
+                {pendingDelete?.lead_count ?? 0} lead'i
               </span>
-              , along with all associated agent logs. This action cannot be undone.
+              , tüm ajan loglarıyla birlikte siler. Bu işlem geri alınamaz.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>İptal</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete school
+              Okulu sil
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

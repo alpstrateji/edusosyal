@@ -39,11 +39,11 @@ const agentIcons: Record<AgentType, LucideIcon> = {
 };
 
 const agentLabels: Record<AgentType, string> = {
-  performance: "Performance Auditor",
-  creative: "Creative Analyst",
-  budget: "Budget Manager",
-  audience: "Audience Architect",
-  nurturing: "Lead Nurturing",
+  performance: "Performans Denetçisi",
+  creative: "Kreatif Analisti",
+  budget: "Bütçe Yöneticisi",
+  audience: "Kitle Mimarı",
+  nurturing: "Lead Beslemesi",
 };
 
 const severityConfig = {
@@ -85,7 +85,7 @@ function LogRow({ log, schoolName }: { log: AgentLogRow; schoolName: string }) {
       {open && (
         <div className="px-4 pb-4 pt-1 pl-12 space-y-3 bg-muted/20 animate-fade-in">
           <div>
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Reasoning chain</div>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Mantık zinciri</div>
             <pre className="whitespace-pre-wrap break-words text-xs leading-relaxed text-foreground bg-background border border-border rounded-md p-3">
               <span className="text-success">$</span> agent.{log.agent_type}.explain(){"\n"}
               <span className="text-muted-foreground">› </span>
@@ -93,7 +93,7 @@ function LogRow({ log, schoolName }: { log: AgentLogRow; schoolName: string }) {
             </pre>
           </div>
           <div>
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Metadata</div>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Üst veri</div>
             <pre className="whitespace-pre-wrap break-words text-xs leading-relaxed text-info bg-background border border-border rounded-md p-3">
               {JSON.stringify(log.metadata ?? {}, null, 2)}
             </pre>
@@ -150,25 +150,25 @@ export default function AgentLogs() {
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1.5">
-            <span>Agents</span>
+            <span>Ajanlar</span>
             <span>/</span>
-            <span className="text-foreground">Logs</span>
+            <span className="text-foreground">Loglar</span>
           </div>
           <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
             <Terminal className="h-5 w-5 text-primary" />
-            Agent activity log
+            Ajan aktivite logu
             <span className="ml-2 inline-flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-success">
               <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse-glow" />
-              live
+              canlı
             </span>
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Every autonomous decision with its full reasoning chain. New events stream in via Realtime.
+            Tüm otonom kararlar ve mantık zincirleri. Yeni olaylar Realtime ile akar.
           </p>
         </div>
         <div className="flex items-center gap-3 text-xs">
           <span className="text-muted-foreground">
-            <span className="text-foreground font-semibold tabular-nums">{counts.total}</span> events
+            <span className="text-foreground font-semibold tabular-nums">{counts.total}</span> olay
           </span>
           <span className="inline-flex items-center gap-1 text-success">
             <span className="h-1.5 w-1.5 rounded-full bg-success" />
@@ -191,7 +191,7 @@ export default function AgentLogs() {
           <div className="relative flex-1 min-w-0">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search action or reasoning…"
+              placeholder="Aksiyon veya gerekçede ara…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className="pl-8 h-9 bg-muted/40 border-border font-mono text-xs"
@@ -199,23 +199,23 @@ export default function AgentLogs() {
           </div>
           <Select value={agentFilter} onValueChange={setAgentFilter}>
             <SelectTrigger className="h-9 w-full md:w-[180px] text-xs bg-muted/40">
-              <SelectValue placeholder="All agents" />
+              <SelectValue placeholder="Tüm ajanlar" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All agents</SelectItem>
-              <SelectItem value="performance">Performance Auditor</SelectItem>
-              <SelectItem value="creative">Creative Analyst</SelectItem>
-              <SelectItem value="budget">Budget Manager</SelectItem>
-              <SelectItem value="audience">Audience Architect</SelectItem>
-              <SelectItem value="nurturing">Lead Nurturing</SelectItem>
+              <SelectItem value="all">Tüm ajanlar</SelectItem>
+              <SelectItem value="performance">Performans Denetçisi</SelectItem>
+              <SelectItem value="creative">Kreatif Analisti</SelectItem>
+              <SelectItem value="budget">Bütçe Yöneticisi</SelectItem>
+              <SelectItem value="audience">Kitle Mimarı</SelectItem>
+              <SelectItem value="nurturing">Lead Beslemesi</SelectItem>
             </SelectContent>
           </Select>
           <Select value={schoolFilter} onValueChange={setSchoolFilter}>
             <SelectTrigger className="h-9 w-full md:w-[200px] text-xs bg-muted/40">
-              <SelectValue placeholder="All schools" />
+              <SelectValue placeholder="Tüm okullar" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All schools</SelectItem>
+              <SelectItem value="all">Tüm okullar</SelectItem>
               {schools.map((s) => (
                 <SelectItem key={s.id} value={s.id}>
                   {s.name}
@@ -225,14 +225,14 @@ export default function AgentLogs() {
           </Select>
           <Select value={severityFilter} onValueChange={setSeverityFilter}>
             <SelectTrigger className="h-9 w-full md:w-[140px] text-xs bg-muted/40">
-              <SelectValue placeholder="Severity" />
+              <SelectValue placeholder="Önem" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All severities</SelectItem>
-              <SelectItem value="info">Info</SelectItem>
-              <SelectItem value="success">Success</SelectItem>
-              <SelectItem value="warning">Warning</SelectItem>
-              <SelectItem value="error">Error</SelectItem>
+              <SelectItem value="all">Tüm önemler</SelectItem>
+              <SelectItem value="info">Bilgi</SelectItem>
+              <SelectItem value="success">Başarı</SelectItem>
+              <SelectItem value="warning">Uyarı</SelectItem>
+              <SelectItem value="error">Hata</SelectItem>
             </SelectContent>
           </Select>
           <Button
@@ -246,7 +246,7 @@ export default function AgentLogs() {
               setQuery("");
             }}
           >
-            Reset
+            Sıfırla
           </Button>
         </div>
       </Card>
@@ -258,7 +258,7 @@ export default function AgentLogs() {
           <span className="h-2.5 w-2.5 rounded-full bg-warning/70" />
           <span className="h-2.5 w-2.5 rounded-full bg-success/70" />
           <span className="ml-3 font-mono text-[11px] text-muted-foreground">
-            edusonex@agents:~ $ tail -f /var/log/agents.jsonl ({filtered.length} matching)
+            edusonex@agents:~ $ tail -f /var/log/agents.jsonl ({filtered.length} eşleşme)
           </span>
         </div>
         <div className="max-h-[calc(100vh-360px)] overflow-y-auto">
@@ -271,13 +271,13 @@ export default function AgentLogs() {
           )}
           {error && (
             <div className="p-8 text-center text-sm text-destructive font-mono">
-              Unable to load logs. Please try again or contact support.
+              Loglar yüklenemedi. Tekrar deneyin veya destekle iletişime geçin.
             </div>
           )}
           {!loading && !error && filtered.length === 0 ? (
             <div className="p-12 text-center text-sm text-muted-foreground font-mono">
               <Terminal className="h-8 w-8 mx-auto mb-2 opacity-40" />
-              No log entries match your filters.
+              Filtrelerinize uyan log kaydı yok.
             </div>
           ) : (
             !loading &&

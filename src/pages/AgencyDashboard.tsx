@@ -42,87 +42,87 @@ export default function AgencyDashboard() {
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1.5">
-            <span>Agency</span>
+            <span>Ajans</span>
             <span>/</span>
-            <span className="text-foreground">Overview</span>
+            <span className="text-foreground">Genel Bakış</span>
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight">Good morning, Admin</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Günaydın, Yönetici</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Autonomous decisions across {schools.length} schools — what to do next, ranked.
+            {schools.length} okul genelinde otonom kararlar — sıradaki en iyi aksiyon.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" className="h-9">
-            Last 7 days
+            Son 7 gün
           </Button>
           <Button size="sm" className="h-9 gap-1.5 bg-gradient-primary text-primary-foreground hover:opacity-90 shadow-glow">
             <Zap className="h-3.5 w-3.5" />
-            New campaign
+            Yeni kampanya
           </Button>
         </div>
       </div>
 
       {/* Spend KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard label="Total Spend" value={inr(totalSpend)} delta={12} icon={IndianRupee} hint="vs last 14d" />
-        <KpiCard label="Active Campaigns" value={activeCampaigns.toString()} delta={6} icon={Users} hint={`${campaigns.length} total`} />
-        <KpiCard label="Avg ROAS" value={`${avgRoas}x`} delta={8} icon={TrendingUp} hint="across portfolio" />
-        <KpiCard label="Avg CPA" value={`₹${avgCpa}`} delta={-6} icon={Target} hint="cost per acquisition" />
+        <KpiCard label="Toplam Harcama" value={inr(totalSpend)} delta={12} icon={IndianRupee} hint="son 14 güne göre" />
+        <KpiCard label="Aktif Kampanya" value={activeCampaigns.toString()} delta={6} icon={Users} hint={`${campaigns.length} toplam`} />
+        <KpiCard label="Ortalama ROAS" value={`${avgRoas}x`} delta={8} icon={TrendingUp} hint="portföy geneli" />
+        <KpiCard label="Ortalama CPA" value={`₹${avgCpa}`} delta={-6} icon={Target} hint="edinme başına maliyet" />
       </div>
 
       {/* Growth KPIs — the new decision metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard
-          label="Reply Rate (7d)"
+          label="Yanıt Oranı (7g)"
           value={growth.loading ? "…" : pct(growth.replyRate)}
           icon={Reply}
           hint={`${growth.replies}/${growth.sent7d} WhatsApp`}
         />
         <KpiCard
-          label="Qualified Lead Rate"
+          label="Nitelikli Lead Oranı"
           value={growth.loading ? "…" : pct(growth.qualifiedRate)}
           icon={Target}
-          hint={`${growth.qualified} high-intent of ${growth.leads7d}`}
+          hint={`${growth.leads7d} içinden ${growth.qualified} yüksek niyet`}
         />
         <KpiCard
-          label="Avg Cost / Lead"
+          label="Lead Başına Ortalama Maliyet"
           value={growth.loading ? "…" : `₹${growth.avgCpl}`}
           icon={IndianRupee}
-          hint="across active campaigns"
+          hint="aktif kampanyalar"
         />
         <KpiCard
-          label="Best Campaign (7d)"
-          value={growth.bestCampaign ? `${growth.bestCampaign.leads} leads` : "—"}
+          label="En İyi Kampanya (7g)"
+          value={growth.bestCampaign ? `${growth.bestCampaign.leads} lead` : "—"}
           icon={Trophy}
-          hint={growth.bestCampaign?.name?.slice(0, 28) ?? "no campaign data"}
+          hint={growth.bestCampaign?.name?.slice(0, 28) ?? "veri yok"}
         />
       </div>
 
       {/* Funnel pulse */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard
-          label="New Leads (24h)"
+          label="Yeni Lead (24s)"
           value={funnel.loading ? "…" : funnel.newLeads24h.toString()}
           icon={UserPlus}
-          hint="from Meta Lead Ads + manual"
+          hint="Meta Lead Ads + manuel"
         />
         <KpiCard
-          label="Messages sent (24h)"
+          label="Gönderilen mesaj (24s)"
           value={messaging.loading ? "…" : messaging.outbound24h.toString()}
           icon={Send}
-          hint="Telegram + WhatsApp outbound"
+          hint="Telegram + WhatsApp giden"
         />
         <KpiCard
-          label="Inbound replies (24h)"
+          label="Gelen yanıt (24s)"
           value={messaging.loading ? "…" : messaging.inbound24h.toString()}
           icon={MessageSquare}
-          hint="lead → bot, live count"
+          hint="lead → bot, canlı sayım"
         />
         <KpiCard
-          label="Response rate (7d)"
+          label="Yanıt oranı (7g)"
           value={messaging.loading ? "…" : pct(messaging.responseRate7d)}
           icon={Reply}
-          hint={`${messaging.inbound7d} in / ${messaging.outbound7d} out`}
+          hint={`${messaging.inbound7d} gelen / ${messaging.outbound7d} giden`}
         />
       </div>
 
@@ -148,7 +148,7 @@ export default function AgencyDashboard() {
       <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2">
         <Activity className="h-3 w-3" />
         <span>
-          {activeCampaigns} active campaigns · agents executed {logs.length} actions recently
+          {activeCampaigns} aktif kampanya · ajanlar son zamanlarda {logs.length} aksiyon gerçekleştirdi
         </span>
       </div>
     </div>

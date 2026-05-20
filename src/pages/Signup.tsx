@@ -22,7 +22,7 @@ export default function Signup() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (password.length < 6) {
-      toast.error("Password must be at least 6 characters");
+      toast.error("Parola en az 6 karakter olmalı");
       return;
     }
     setSubmitting(true);
@@ -31,7 +31,7 @@ export default function Signup() {
     if (error) {
       toast.error(error);
     } else {
-      toast.success("Account created. You're signed in as agency admin.");
+      toast.success("Hesap oluşturuldu. Ajans yöneticisi olarak giriş yaptınız.");
       navigate("/", { replace: true });
     }
   }
@@ -48,27 +48,27 @@ export default function Signup() {
 
         <Card className="border-border/50">
           <CardHeader>
-            <CardTitle>Create account</CardTitle>
-            <CardDescription>You'll be set up as an agency admin with full access.</CardDescription>
+            <CardTitle>Hesap oluştur</CardTitle>
+            <CardDescription>Tam erişimli bir ajans yöneticisi olarak oluşturulacaksınız.</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@agency.com" />
+                <Label htmlFor="email">E-posta</Label>
+                <Input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ornek@ajans.com" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" autoComplete="new-password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 6 characters" />
+                <Label htmlFor="password">Parola</Label>
+                <Input id="password" type="password" autoComplete="new-password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="En az 6 karakter" />
               </div>
               <Button type="submit" className="w-full" disabled={submitting}>
                 {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Create account
+                Hesap oluştur
               </Button>
             </form>
             <p className="mt-4 text-sm text-muted-foreground text-center">
-              Already have an account?{" "}
-              <Link to="/login" className="text-primary hover:underline">Sign in</Link>
+              Zaten hesabınız var mı?{" "}
+              <Link to="/login" className="text-primary hover:underline">Giriş yapın</Link>
             </p>
           </CardContent>
         </Card>

@@ -100,8 +100,8 @@ export default function CampaignsAdmin() {
       supabase.from("campaigns").select("*").order("created_at", { ascending: false }),
       supabase.from("schools").select("*").order("name"),
     ]);
-    if (cRes.error) toast.error(`Failed to load campaigns: ${cRes.error.message}`);
-    if (sRes.error) toast.error(`Failed to load schools: ${sRes.error.message}`);
+    if (cRes.error) toast.error(`Kampanyalar yüklenemedi: ${cRes.error.message}`);
+    if (sRes.error) toast.error(`Okullar yüklenemedi: ${sRes.error.message}`);
     setCampaigns((cRes.data as Campaign[]) ?? []);
     setSchools((sRes.data as School[]) ?? []);
     setLoading(false);
@@ -162,16 +162,16 @@ export default function CampaignsAdmin() {
 
   async function save() {
     const name = form.name.trim();
-    if (!name) return toast.error("Name is required");
-    if (name.length < 2) return toast.error("Name must be at least 2 characters");
-    if (!form.school_id) return toast.error("School is required");
+    if (!name) return toast.error("İsim zorunlu");
+    if (name.length < 2) return toast.error("İsim en az 2 karakter olmalı");
+    if (!form.school_id) return toast.error("Okul seçimi zorunlu");
 
     const spend = Number(form.spend);
     const roas = Number(form.roas);
     const cpa = Number(form.cpa);
-    if (!Number.isFinite(spend) || spend < 0) return toast.error("Spend must be ≥ 0");
-    if (!Number.isFinite(roas) || roas < 0) return toast.error("ROAS must be ≥ 0");
-    if (!Number.isFinite(cpa) || cpa < 0) return toast.error("CPA must be ≥ 0");
+    if (!Number.isFinite(spend) || spend < 0) return toast.error("Harcama ≥ 0 olmalı");
+    if (!Number.isFinite(roas) || roas < 0) return toast.error("ROAS ≥ 0 olmalı");
+    if (!Number.isFinite(cpa) || cpa < 0) return toast.error("CPA ≥ 0 olmalı");
 
     setSaving(true);
     const payload = {
@@ -187,10 +187,10 @@ export default function CampaignsAdmin() {
       : await supabase.from("campaigns").insert(payload);
     setSaving(false);
     if (res.error) {
-      toast.error(`Save failed: ${res.error.message}`);
+      toast.error(`Kaydedilemedi: ${res.error.message}`);
       return;
     }
-    toast.success(form.id ? "Campaign updated" : `Campaign created: ${name}`);
+    toast.success(form.id ? "Kampanya güncellendi" : `Kampanya oluşturuldu: ${name}`);
     setDialogOpen(false);
     setForm(EMPTY_FORM);
     load();
@@ -203,10 +203,10 @@ export default function CampaignsAdmin() {
       .update({ status: next })
       .eq("id", c.id);
     if (error) {
-      toast.error(`Update failed: ${error.message}`);
+      toast.error(`Güncellenemedi: ${error.message}`);
       return;
     }
-    toast.success(`Campaign ${next}`);
+    toast.success(`Kampanya ${next === "active" ? "etkinleştirildi" : "duraklatıldı"}`);
     load();
   }
 
@@ -218,10 +218,10 @@ export default function CampaignsAdmin() {
       .eq("id", pendingDelete.id);
     setPendingDelete(null);
     if (error) {
-      toast.error(`Delete failed: ${error.message}`);
+      toast.error(`Silinemedi: ${error.message}`);
       return;
     }
-    toast.success("Campaign deleted");
+    toast.success("Kampanya silindi");
     load();
   }
 
@@ -230,13 +230,13 @@ export default function CampaignsAdmin() {
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1.5">
-            <span>Admin</span>
+            <span>Yönetim</span>
             <span>/</span>
-            <span className="text-foreground">Campaigns</span>
+            <span className="text-foreground">Kampanyalar</span>
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight">Campaigns</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Kampanyalar</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Manage campaigns across all schools — create, edit, pause, or delete.
+            Tüm okullardaki kampanyaları yönetin — oluşturun, düzenleyin, duraklatın veya silin.
           </p>
         </div>
         <Button
@@ -245,16 +245,16 @@ export default function CampaignsAdmin() {
           onClick={openCreate}
           disabled={!schools.length}
         >
-          <Plus className="h-3.5 w-3.5" /> New campaign
+          <Plus className="h-3.5 w-3.5" /> Yeni kampanya
         </Button>
       </div>
 
       {/* Totals */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatTile label="Total" value={totals.total.toString()} />
-        <StatTile label="Active" value={totals.active.toString()} tone="success" />
-        <StatTile label="Total spend" value={inr(totals.spend)} />
-        <StatTile label="Avg ROAS" value={`${totals.avgRoas}x`} tone="info" />
+        <StatTile label="Toplam" value={totals.total.toString()} />
+        <StatTile label="Aktif" value={totals.active.toString()} tone="success" />
+        <StatTile label="Toplam harcama" value={inr(totals.spend)} />
+        <StatTile label="Ortalama ROAS" value={`${totals.avgRoas}x`} tone="info" />
       </div>
 
       {/* Filters */}
@@ -264,7 +264,7 @@ export default function CampaignsAdmin() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by campaign or school name…"
+                placeholder="Kampanya veya okul adına göre ara…"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 className="pl-9 h-9"
@@ -276,7 +276,7 @@ export default function CampaignsAdmin() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All statuses</SelectItem>
+                  <SelectItem value="all">Tüm durumlar</SelectItem>
                   {STATUS_OPTIONS.map((s) => (
                     <SelectItem key={s} value={s} className="capitalize">
                       {s}
@@ -289,7 +289,7 @@ export default function CampaignsAdmin() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All schools</SelectItem>
+                  <SelectItem value="all">Tüm okullar</SelectItem>
                   {schools.map((s) => (
                     <SelectItem key={s.id} value={s.id}>
                       {s.name}
@@ -310,20 +310,20 @@ export default function CampaignsAdmin() {
           ) : !filtered.length ? (
             <div className="px-5 py-12 text-center text-sm text-muted-foreground">
               {!schools.length
-                ? "Create a school first, then add campaigns."
-                : "No campaigns match the current filters."}
+                ? "Önce bir okul oluşturun, sonra kampanya ekleyin."
+                : "Geçerli filtrelerle eşleşen kampanya yok."}
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Campaign</TableHead>
-                  <TableHead>School</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Spend</TableHead>
+                  <TableHead>Kampanya</TableHead>
+                  <TableHead>Okul</TableHead>
+                  <TableHead>Durum</TableHead>
+                  <TableHead className="text-right">Harcama</TableHead>
                   <TableHead className="text-right">ROAS</TableHead>
                   <TableHead className="text-right">CPA</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className="text-right">Aksiyonlar</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -332,7 +332,7 @@ export default function CampaignsAdmin() {
                     <TableCell>
                       <div className="font-medium text-sm">{c.name}</div>
                       <div className="text-[11px] text-muted-foreground">
-                        Created {new Date(c.created_at).toLocaleDateString()}
+                        Oluşturma: {new Date(c.created_at).toLocaleDateString()}
                       </div>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
@@ -342,7 +342,7 @@ export default function CampaignsAdmin() {
                       <button
                         onClick={() => toggleStatus(c)}
                         title={
-                          c.status === "active" ? "Click to pause" : "Click to activate"
+                          c.status === "active" ? "Duraklatmak için tıkla" : "Etkinleştirmek için tıkla"
                         }
                       >
                         <Badge
@@ -399,21 +399,21 @@ export default function CampaignsAdmin() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Megaphone className="h-4 w-4 text-primary" />
-              {form.id ? "Edit campaign" : "New campaign"}
+              {form.id ? "Kampanyayı düzenle" : "Yeni kampanya"}
             </DialogTitle>
             <DialogDescription>
               {form.id
-                ? "Update the campaign details."
-                : "Create a new campaign for one of your schools."}
+                ? "Kampanya bilgilerini güncelleyin."
+                : "Okullarınızdan biri için yeni bir kampanya oluşturun."}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
-              <Label htmlFor="c-name">Name</Label>
+              <Label htmlFor="c-name">İsim</Label>
               <Input
                 id="c-name"
-                placeholder="e.g. Summer Admissions Drive"
+                placeholder="Örn. Yaz Kayıt Kampanyası"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 maxLength={120}
@@ -422,13 +422,13 @@ export default function CampaignsAdmin() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor="c-school">School</Label>
+                <Label htmlFor="c-school">Okul</Label>
                 <Select
                   value={form.school_id}
                   onValueChange={(v) => setForm({ ...form, school_id: v })}
                 >
                   <SelectTrigger id="c-school">
-                    <SelectValue placeholder="Select school" />
+                    <SelectValue placeholder="Okul seçin" />
                   </SelectTrigger>
                   <SelectContent>
                     {schools.map((s) => (
@@ -440,7 +440,7 @@ export default function CampaignsAdmin() {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="c-status">Status</Label>
+                <Label htmlFor="c-status">Durum</Label>
                 <Select
                   value={form.status}
                   onValueChange={(v) => setForm({ ...form, status: v })}
@@ -461,7 +461,7 @@ export default function CampaignsAdmin() {
 
             <div className="grid grid-cols-3 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor="c-spend">Spend (₹)</Label>
+                <Label htmlFor="c-spend">Harcama (₹)</Label>
                 <Input
                   id="c-spend"
                   type="number"
@@ -498,10 +498,10 @@ export default function CampaignsAdmin() {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              Cancel
+              İptal
             </Button>
             <Button onClick={save} disabled={saving}>
-              {form.id ? "Save changes" : "Create campaign"}
+              {form.id ? "Değişiklikleri kaydet" : "Kampanya oluştur"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -513,19 +513,19 @@ export default function CampaignsAdmin() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete "{pendingDelete?.name}"?</AlertDialogTitle>
+            <AlertDialogTitle>"{pendingDelete?.name}" silinsin mi?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the campaign. Leads attached to other
-              campaigns are unaffected. This action cannot be undone.
+              Bu işlem kampanyayı kalıcı olarak siler. Başka kampanyalara bağlı lead'ler
+              etkilenmez. Bu işlem geri alınamaz.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>İptal</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete campaign
+              Kampanyayı sil
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

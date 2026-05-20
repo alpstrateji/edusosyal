@@ -16,14 +16,14 @@ import { useAppSettings } from "@/hooks/useAppSettings";
 import { toast } from "sonner";
 
 const PROVIDER_OPTIONS = [
-  { value: "telegram", label: "Telegram (primary)" },
+  { value: "telegram", label: "Telegram (birincil)" },
   { value: "whatsapp", label: "WhatsApp (Meta)" },
 ];
 
 // Curated subset — OpenRouter has hundreds, but these cover the common
 // price/quality tradeoffs.
 const MODEL_OPTIONS = [
-  { value: "openai/gpt-4o-mini", label: "GPT-4o mini (fast / cheap)" },
+  { value: "openai/gpt-4o-mini", label: "GPT-4o mini (hızlı / uygun)" },
   { value: "openai/gpt-4o", label: "GPT-4o" },
   { value: "anthropic/claude-3.5-sonnet", label: "Claude 3.5 Sonnet" },
   { value: "google/gemini-pro-1.5", label: "Gemini 1.5 Pro" },
@@ -45,9 +45,9 @@ export default function SettingsPage() {
     setSaving(key);
     try {
       await setSetting(key, value);
-      toast.success(`Updated ${key}`);
+      toast.success(`${key} güncellendi`);
     } catch (e) {
-      toast.error(`Save failed: ${(e as Error).message}`);
+      toast.error(`Kaydedilemedi: ${(e as Error).message}`);
     } finally {
       setSaving(null);
     }
@@ -57,7 +57,7 @@ export default function SettingsPage() {
     return (
       <div className="px-4 md:px-8 py-12 flex items-center gap-2 text-muted-foreground">
         <Loader2 className="h-4 w-4 animate-spin" />
-        Loading settings…
+        Ayarlar yükleniyor…
       </div>
     );
   }
@@ -66,27 +66,28 @@ export default function SettingsPage() {
     <div className="px-4 md:px-8 py-6 space-y-6 animate-fade-in max-w-3xl">
       <div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1.5">
-          <span>Workspace</span>
+          <span>Çalışma Alanı</span>
           <span>/</span>
-          <span className="text-foreground">Settings</span>
+          <span className="text-foreground">Ayarlar</span>
         </div>
         <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
           <SettingsIcon className="h-5 w-5" />
-          Automation settings
+          Otomasyon ayarları
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Controls the AI sales agent. Changes take effect immediately for new sends.
+          AI satış ajanını yönetir. Değişiklikler yeni gönderimlerde hemen geçerli olur.
         </p>
       </div>
 
       <Card className="border-border/50">
         <CardHeader>
-          <CardTitle className="text-base">Auto-send</CardTitle>
+          <CardTitle className="text-base">Otomatik gönderim</CardTitle>
           <CardDescription className="text-xs">
-            When enabled, the cron job sends AI replies automatically to leads marked
+            Açıldığında cron işi,
             <code className="mx-1 px-1 py-0.5 bg-muted rounded text-[10px]">contacted</code>
-            with a fresh inbound reply. Leave off to operate in
-            <span className="font-medium"> review-first </span> mode (drafts only).
+            olarak işaretli, yeni inbound yanıtı olan lead'lere AI yanıtlarını otomatik gönderir.
+            Kapalıyken
+            <span className="font-medium"> önce-incele </span> modunda çalışır (yalnızca taslak).
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -94,7 +95,7 @@ export default function SettingsPage() {
             <Label htmlFor="auto_send" className="flex flex-col gap-1">
               <span className="text-sm font-medium">AUTO_SEND</span>
               <span className="text-[11px] text-muted-foreground font-normal">
-                Master switch for the auto-send cron and webhook auto-replies.
+                Otomatik gönderim cron'u ve webhook otomatik yanıtları için ana anahtar.
               </span>
             </Label>
             <Switch
@@ -107,9 +108,9 @@ export default function SettingsPage() {
 
           <div className="flex items-center justify-between">
             <Label htmlFor="ai_enabled" className="flex flex-col gap-1">
-              <span className="text-sm font-medium">AI replies enabled</span>
+              <span className="text-sm font-medium">AI yanıtları aktif</span>
               <span className="text-[11px] text-muted-foreground font-normal">
-                Off = the system never calls OpenRouter (manual messaging only).
+                Kapalı = sistem OpenRouter'ı hiç çağırmaz (sadece manuel mesajlaşma).
               </span>
             </Label>
             <Switch
@@ -124,11 +125,11 @@ export default function SettingsPage() {
 
       <Card className="border-border/50">
         <CardHeader>
-          <CardTitle className="text-base">Default messaging provider</CardTitle>
+          <CardTitle className="text-base">Varsayılan mesajlaşma sağlayıcısı</CardTitle>
           <CardDescription className="text-xs">
-            Used when a lead has no explicit channel pinned. Telegram is always preferred
-            if a <code className="px-1 py-0.5 bg-muted rounded text-[10px]">telegram_chat_id</code>
-            is known for the lead.
+            Lead için açık bir kanal belirlenmediğinde kullanılır. Lead için
+            <code className="px-1 py-0.5 bg-muted rounded text-[10px]">telegram_chat_id</code>
+            biliniyorsa Telegram her zaman tercih edilir.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -153,10 +154,10 @@ export default function SettingsPage() {
 
       <Card className="border-border/50">
         <CardHeader>
-          <CardTitle className="text-base">AI model (OpenRouter)</CardTitle>
+          <CardTitle className="text-base">AI modeli (OpenRouter)</CardTitle>
           <CardDescription className="text-xs">
-            The model used by <code className="px-1 py-0.5 bg-muted rounded text-[10px]">generateReply</code>.
-            Use the custom field to specify any OpenRouter slug.
+            <code className="px-1 py-0.5 bg-muted rounded text-[10px]">generateReply</code> tarafından kullanılan model.
+            Herhangi bir OpenRouter slug'ı için özel alan kullanın.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -180,7 +181,7 @@ export default function SettingsPage() {
                   {m.label}
                 </SelectItem>
               ))}
-              <SelectItem value="__custom">Custom (enter slug)…</SelectItem>
+              <SelectItem value="__custom">Özel (slug gir)…</SelectItem>
             </SelectContent>
           </Select>
 
@@ -189,7 +190,7 @@ export default function SettingsPage() {
               <Input
                 value={customModel || model}
                 onChange={(e) => setCustomModel(e.target.value)}
-                placeholder="provider/model-name"
+                placeholder="sağlayıcı/model-adı"
                 className="h-9"
               />
               <Button
@@ -199,7 +200,7 @@ export default function SettingsPage() {
                 disabled={!customModel.trim() || saving === "ai_model"}
               >
                 <Save className="h-3.5 w-3.5" />
-                Save
+                Kaydet
               </Button>
             </div>
           )}
@@ -209,9 +210,9 @@ export default function SettingsPage() {
       <div className="flex items-start gap-2 text-[11px] text-muted-foreground bg-muted/30 border border-border/60 rounded-md p-3">
         <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
         <p>
-          Edge functions and cron schedules must be deployed separately via Supabase CLI.
-          See <code className="px-1 py-0.5 bg-muted rounded">supabase_messaging_migration.sql</code> for the
-          schema and the README for deploy commands.
+          Edge fonksiyonları ve cron planları Supabase CLI ile ayrıca deploy edilmelidir.
+          Şema için <code className="px-1 py-0.5 bg-muted rounded">supabase_messaging_migration.sql</code> dosyasına ve
+          deploy komutları için README'ye bakın.
         </p>
       </div>
     </div>
