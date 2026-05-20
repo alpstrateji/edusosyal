@@ -57,15 +57,15 @@ export function PerformanceChart() {
     <Card className="p-5 bg-card border-border shadow-card lg:col-span-2">
       <div className="flex items-start justify-between mb-5">
         <div>
-          <h3 className="text-sm font-semibold">Spend & ROAS — last 14 days</h3>
+          <h3 className="text-sm font-semibold">Harcama & ROAS — son 14 gün</h3>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Daily ad spend across all schools, overlaid with return on ad spend
+            Tüm okullardaki günlük reklam harcaması ve reklam getirisi
           </p>
         </div>
         <div className="flex items-center gap-3 text-xs">
           <span className="inline-flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full bg-primary" />
-            <span className="text-muted-foreground">Spend (₹)</span>
+            <span className="text-muted-foreground">Harcama (₹)</span>
           </span>
           <span className="inline-flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full bg-success" />
@@ -105,8 +105,8 @@ export function LeadsBarChart() {
   return (
     <Card className="p-5 bg-card border-border shadow-card">
       <div className="mb-5">
-        <h3 className="text-sm font-semibold">Daily activity</h3>
-        <p className="text-xs text-muted-foreground mt-0.5">Agent actions per day</p>
+        <h3 className="text-sm font-semibold">Günlük aktivite</h3>
+        <p className="text-xs text-muted-foreground mt-0.5">Günlük ajan aksiyonları</p>
       </div>
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">

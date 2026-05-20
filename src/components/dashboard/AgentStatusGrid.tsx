@@ -12,21 +12,21 @@ import { useAgentLogs } from "@/hooks/useAgentLogs";
 import type { AgentType } from "@/lib/supabaseClient";
 
 const AGENTS: { type: AgentType; name: string; description: string; icon: LucideIcon }[] = [
-  { type: "performance", name: "Performance Auditor", description: "Monitors CTR, CPA, ROAS — pauses underperformers", icon: Activity },
-  { type: "creative", name: "Creative Analyst", description: "Detects creative fatigue and rotates assets", icon: Sparkles },
-  { type: "budget", name: "Budget Manager", description: "Reallocates spend toward highest-ROAS sets", icon: Wallet },
-  { type: "audience", name: "Audience Architect", description: "Builds lookalikes from converted leads", icon: Users },
-  { type: "nurturing", name: "Lead Nurturing", description: "Follows up stale leads via WhatsApp", icon: MessageCircle },
+  { type: "performance", name: "Performans Denetçisi", description: "CTR, CPA, ROAS izler — düşük performansı durdurur", icon: Activity },
+  { type: "creative", name: "Kreatif Analisti", description: "Kreatif yorgunluğunu tespit eder, varlıkları rotasyonlar", icon: Sparkles },
+  { type: "budget", name: "Bütçe Yöneticisi", description: "Harcamayı en yüksek ROAS setlerine yönlendirir", icon: Wallet },
+  { type: "audience", name: "Kitle Mimarı", description: "Dönüşen lead'lerden lookalike kitleler oluşturur", icon: Users },
+  { type: "nurturing", name: "Lead Beslemesi", description: "Donuk lead'leri WhatsApp üzerinden takip eder", icon: MessageCircle },
 ];
 
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const m = Math.floor(diff / 60000);
-  if (m < 1) return "just now";
-  if (m < 60) return `${m}m ago`;
+  if (m < 1) return "az önce";
+  if (m < 60) return `${m}dk önce`;
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
+  if (h < 24) return `${h}sa önce`;
+  return `${Math.floor(h / 24)}g önce`;
 }
 
 export function AgentStatusGrid() {
@@ -36,9 +36,9 @@ export function AgentStatusGrid() {
     <Card className="p-5 bg-card border-border shadow-card">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold">Autonomous agents</h3>
+          <h3 className="text-sm font-semibold">Otonom ajanlar</h3>
           <p className="text-xs text-muted-foreground mt-0.5">
-            5 specialized agents operating across your portfolio
+            Portföyünüzde çalışan 5 uzman ajan
           </p>
         </div>
       </div>
@@ -52,10 +52,10 @@ export function AgentStatusGrid() {
           const status = hasError ? "warning" : hasWarn ? "warning" : last ? "active" : "idle";
           const styles =
             status === "active"
-              ? { dot: "bg-success shadow-[0_0_10px_hsl(var(--success))]", text: "text-success", label: "Active" }
+              ? { dot: "bg-success shadow-[0_0_10px_hsl(var(--success))]", text: "text-success", label: "Aktif" }
               : status === "warning"
-                ? { dot: "bg-warning shadow-[0_0_10px_hsl(var(--warning))]", text: "text-warning", label: "Attention" }
-                : { dot: "bg-muted-foreground/50", text: "text-muted-foreground", label: "Idle" };
+                ? { dot: "bg-warning shadow-[0_0_10px_hsl(var(--warning))]", text: "text-warning", label: "Dikkat" }
+                : { dot: "bg-muted-foreground/50", text: "text-muted-foreground", label: "Boşta" };
 
           return (
             <div

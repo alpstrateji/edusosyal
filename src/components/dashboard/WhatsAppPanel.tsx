@@ -11,10 +11,10 @@ import { useSchools } from "@/hooks/useSchools";
 import { toast } from "sonner";
 
 const TEMPLATES = [
-  { value: "welcome", label: "Welcome — first touch" },
-  { value: "followup_24h", label: "Follow-up — 24h" },
-  { value: "open_house", label: "Open house invite" },
-  { value: "scholarship_info", label: "Scholarship info" },
+  { value: "welcome", label: "Karşılama — ilk temas" },
+  { value: "followup_24h", label: "Takip — 24 saat" },
+  { value: "open_house", label: "Açık ev daveti" },
+  { value: "scholarship_info", label: "Burs bilgisi" },
 ];
 
 export function WhatsAppPanel() {
@@ -33,7 +33,7 @@ export function WhatsAppPanel() {
 
   async function handleSend() {
     if (!selectedLead) {
-      toast.error("Pick a lead first");
+      toast.error("Önce bir lead seçin");
       return;
     }
     setSending(true);
@@ -49,10 +49,10 @@ export function WhatsAppPanel() {
     setSending(false);
 
     if (error || (data && data.success === false)) {
-      toast.error(`Send failed: ${error?.message ?? JSON.stringify(data?.error ?? data)}`);
+      toast.error(`Gönderilemedi: ${error?.message ?? JSON.stringify(data?.error ?? data)}`);
       return;
     }
-    toast.success(`Sent to ${selectedLead.name}`);
+    toast.success(`${selectedLead.name} kişisine gönderildi`);
     setVariable1("");
   }
 
@@ -64,9 +64,9 @@ export function WhatsAppPanel() {
             <MessageSquare className="h-4 w-4 text-primary" />
           </div>
           <div>
-            <CardTitle className="text-base">Send WhatsApp</CardTitle>
+            <CardTitle className="text-base">WhatsApp Gönder</CardTitle>
             <CardDescription className="text-xs">
-              Trigger a templated WhatsApp message via Meta Cloud API.
+              Meta Cloud API üzerinden şablonlu WhatsApp mesajı gönderin.
             </CardDescription>
           </div>
         </div>
@@ -77,7 +77,7 @@ export function WhatsAppPanel() {
             <Label htmlFor="lead">Lead</Label>
             <Select value={leadId} onValueChange={setLeadId}>
               <SelectTrigger id="lead">
-                <SelectValue placeholder={loading ? "Loading leads…" : "Select a lead"} />
+                <SelectValue placeholder={loading ? "Yükleniyor…" : "Bir lead seçin"} />
               </SelectTrigger>
               <SelectContent className="max-h-72">
                 {leads.slice(0, 100).map((l) => (
@@ -90,13 +90,13 @@ export function WhatsAppPanel() {
             </Select>
             {selectedLead && (
               <p className="text-[11px] text-muted-foreground">
-                {schoolName} · status: {selectedLead.status}
+                {schoolName} · durum: {selectedLead.status}
               </p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="template">Template</Label>
+            <Label htmlFor="template">Şablon</Label>
             <Select value={template} onValueChange={setTemplate}>
               <SelectTrigger id="template">
                 <SelectValue />
@@ -112,23 +112,23 @@ export function WhatsAppPanel() {
 
         <div className="space-y-2">
           <Label htmlFor="var1">
-            Variable {"{{1}}"} <span className="text-muted-foreground">— defaults to lead name</span>
+            Değişken {"{{1}}"} <span className="text-muted-foreground">— varsayılan: lead adı</span>
           </Label>
           <Input
             id="var1"
             value={variable1}
             onChange={(e) => setVariable1(e.target.value)}
-            placeholder={selectedLead?.name ?? "Recipient name"}
+            placeholder={selectedLead?.name ?? "Alıcı adı"}
           />
         </div>
 
         <div className="flex items-center justify-between pt-1">
           <p className="text-[11px] text-muted-foreground">
-            Logged automatically to <span className="text-foreground">agent_logs</span>.
+            Otomatik olarak <span className="text-foreground">agent_logs</span> tablosuna kaydedilir.
           </p>
           <Button onClick={handleSend} disabled={sending || !leadId} className="gap-1.5">
             {sending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
-            Send message
+            Mesajı gönder
           </Button>
         </div>
       </CardContent>

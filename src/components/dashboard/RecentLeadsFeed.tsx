@@ -29,11 +29,11 @@ const STATUS_CLASS: Record<string, string> = {
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
   const m = Math.floor(diff / 60000);
-  if (m < 1) return "just now";
-  if (m < 60) return `${m}m ago`;
+  if (m < 1) return "az önce";
+  if (m < 60) return `${m}dk önce`;
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
+  if (h < 24) return `${h}sa önce`;
+  return `${Math.floor(h / 24)}g önce`;
 }
 
 export function RecentLeadsFeed() {
@@ -49,19 +49,19 @@ export function RecentLeadsFeed() {
             <Inbox className="h-4 w-4 text-primary" />
           </div>
           <div>
-            <CardTitle className="text-base">Recent Leads</CardTitle>
+            <CardTitle className="text-base">Son Lead'ler</CardTitle>
             <CardDescription className="text-xs">
-              Live feed — name, source, intent score, status.
+              Canlı akış — isim, kaynak, niyet skoru, durum.
             </CardDescription>
           </div>
         </div>
       </CardHeader>
       <CardContent className="p-0">
         {loading && (
-          <div className="text-sm text-muted-foreground py-8 text-center">Loading…</div>
+          <div className="text-sm text-muted-foreground py-8 text-center">Yükleniyor…</div>
         )}
         {!loading && !top.length && (
-          <div className="text-sm text-muted-foreground py-8 text-center">No leads yet.</div>
+          <div className="text-sm text-muted-foreground py-8 text-center">Henüz lead yok.</div>
         )}
         <ul className="divide-y divide-border/60">
           {top.map((l: any) => {
@@ -73,7 +73,7 @@ export function RecentLeadsFeed() {
                 <div className="min-w-0">
                   <p className="text-sm font-medium truncate">{l.name}</p>
                   <p className="text-[11px] text-muted-foreground truncate">
-                    {school} · {l.source ?? "manual"} · {timeAgo(l.created_at)}
+                    {school} · {l.source ?? "manuel"} · {timeAgo(l.created_at)}
                   </p>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">

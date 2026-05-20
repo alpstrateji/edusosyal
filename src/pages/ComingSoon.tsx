@@ -10,8 +10,8 @@ export default function ComingSoon({ title }: { title: string }) {
         </div>
         <h2 className="text-lg font-semibold mb-1">{title}</h2>
         <p className="text-sm text-muted-foreground">
-          This module is part of the next iteration. The Agency Dashboard and Agent Logs are
-          ready to explore — start there.
+          Bu modül sıradaki sürümde gelecek. Şimdilik Ajans Paneli ve Ajan Loglarını
+          inceleyebilirsiniz.
         </p>
       </Card>
     </div>
