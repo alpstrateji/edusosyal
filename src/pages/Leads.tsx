@@ -72,9 +72,9 @@ const STATUS_CLASS: Record<string, string> = {
 const STATUS_OPTIONS = ["new", "contacted", "replied", "qualified", "converted", "lost"];
 const INTENT_OPTIONS = ["high", "medium", "low", "unknown"];
 const REPLY_OPTIONS = [
-  { value: "all", label: "All replies" },
-  { value: "replied", label: "Replied" },
-  { value: "not_replied", label: "Not replied" },
+  { value: "all", label: "Tüm yanıtlar" },
+  { value: "replied", label: "Yanıt verdi" },
+  { value: "not_replied", label: "Yanıt vermedi" },
 ];
 
 const INTENT_RANK: Record<string, number> = { high: 3, medium: 2, low: 1, unknown: 0 };
@@ -86,11 +86,11 @@ type SortDir = "asc" | "desc";
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
   const m = Math.floor(diff / 60000);
-  if (m < 1) return "just now";
-  if (m < 60) return `${m}m ago`;
+  if (m < 1) return "az önce";
+  if (m < 60) return `${m}dk önce`;
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
+  if (h < 24) return `${h}sa önce`;
+  return `${Math.floor(h / 24)}g önce`;
 }
 
 function csvEscape(v: unknown): string {
@@ -216,15 +216,15 @@ export default function Leads() {
     const res = await generateAiReply(lead.id, send);
     setRowAction(null);
     if (!res.success) {
-      toast.error(`AI failed: ${res.error ?? "unknown"}`);
+      toast.error(`AI başarısız: ${res.error ?? "bilinmeyen"}`);
       return;
     }
     if (send) {
-      toast.success("AI reply sent");
+      toast.success("AI yanıtı gönderildi");
       refetch();
     } else if (res.text) {
       // No drawer open — just let the user know it's queued in their pipeline.
-      toast.success("Draft generated — open the lead to review");
+      toast.success("Taslak oluşturuldu — incelemek için lead'i açın");
     }
   }
 
@@ -269,10 +269,10 @@ export default function Leads() {
     const { error } = await supabase.from("leads").update({ status }).eq("id", lead.id);
     setUpdating(false);
     if (error) {
-      toast.error(`Failed to update: ${error.message}`);
+      toast.error(`Güncellenemedi: ${error.message}`);
       return;
     }
-    toast.success(`Status updated to ${status}`);
+    toast.success(`Durum "${status}" olarak güncellendi`);
     setSelected({ ...lead, status });
     refetch();
   }
@@ -284,10 +284,10 @@ export default function Leads() {
     const { error } = await supabase.from("leads").update({ status }).in("id", ids);
     setBulkUpdating(false);
     if (error) {
-      toast.error(`Bulk update failed: ${error.message}`);
+      toast.error(`Toplu güncelleme başarısız: ${error.message}`);
       return;
     }
-    toast.success(`Updated ${ids.length} leads to "${status}"`);
+    toast.success(`${ids.length} lead "${status}" olarak güncellendi`);
     setSelectedIds(new Set());
     refetch();
   }
@@ -306,9 +306,9 @@ export default function Leads() {
     }
     setBulkAiRunning(false);
     if (failed) {
-      toast.warning(`Generated ${ok}/${ids.length} drafts — ${failed} failed`);
+      toast.warning(`${ok}/${ids.length} taslak üretildi — ${failed} başarısız`);
     } else {
-      toast.success(`Generated ${ok} AI drafts`);
+      toast.success(`${ok} AI taslağı üretildi`);
     }
   }
 
@@ -318,11 +318,11 @@ export default function Leads() {
         ? filtered.filter((l) => selectedIds.has(l.id))
         : filtered;
     if (!rows.length) {
-      toast.error("Nothing to export");
+      toast.error("Dışa aktarılacak veri yok");
       return;
     }
     downloadCsv(rows, schoolMap);
-    toast.success(`Exported ${rows.length} leads`);
+    toast.success(`${rows.length} lead dışa aktarıldı`);
   }
 
   return (
@@ -331,13 +331,13 @@ export default function Leads() {
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1.5">
-            <span>Workspace</span>
+            <span>Çalışma Alanı</span>
             <span>/</span>
-            <span className="text-foreground">Leads</span>
+            <span className="text-foreground">Lead'ler</span>
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight">Leads</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Lead'ler</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            All inbound leads across schools — search, filter, sort, and update in bulk.
+            Tüm okullardan gelen lead'ler — ara, filtrele, sırala ve toplu güncelle.
           </p>
         </div>
         <Button
@@ -348,16 +348,16 @@ export default function Leads() {
           disabled={!filtered.length}
         >
           <Download className="h-3.5 w-3.5" />
-          Export CSV ({filtered.length})
+          CSV indir ({filtered.length})
         </Button>
       </div>
 
       {/* Quick stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatTile label="Total leads" value={counts.total} icon={Users} />
-        <StatTile label="High intent" value={counts.high} icon={Filter} tone="success" />
-        <StatTile label="New (untouched)" value={counts.newCount} icon={MessageSquare} tone="info" />
-        <StatTile label="Replied" value={counts.replied} icon={Phone} tone="success" />
+        <StatTile label="Toplam lead" value={counts.total} icon={Users} />
+        <StatTile label="Yüksek niyet" value={counts.high} icon={Filter} tone="success" />
+        <StatTile label="Yeni (dokunulmamış)" value={counts.newCount} icon={MessageSquare} tone="info" />
+        <StatTile label="Yanıt verdi" value={counts.replied} icon={Phone} tone="success" />
       </div>
 
       {/* Filters */}
@@ -367,7 +367,7 @@ export default function Leads() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by name, phone, or school…"
+                placeholder="İsim, telefon veya okula göre ara…"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 className="pl-9 h-9"
@@ -376,10 +376,10 @@ export default function Leads() {
             <div className="flex flex-wrap gap-2">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="h-9 w-[140px]">
-                  <SelectValue placeholder="Status" />
+                  <SelectValue placeholder="Durum" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All statuses</SelectItem>
+                  <SelectItem value="all">Tüm durumlar</SelectItem>
                   {STATUS_OPTIONS.map((s) => (
                     <SelectItem key={s} value={s} className="capitalize">
                       {s}
@@ -389,10 +389,10 @@ export default function Leads() {
               </Select>
               <Select value={intentFilter} onValueChange={setIntentFilter}>
                 <SelectTrigger className="h-9 w-[140px]">
-                  <SelectValue placeholder="Intent" />
+                  <SelectValue placeholder="Niyet" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All intents</SelectItem>
+                  <SelectItem value="all">Tüm niyetler</SelectItem>
                   {INTENT_OPTIONS.map((i) => (
                     <SelectItem key={i} value={i} className="capitalize">
                       {i}
@@ -402,10 +402,10 @@ export default function Leads() {
               </Select>
               <Select value={schoolFilter} onValueChange={setSchoolFilter}>
                 <SelectTrigger className="h-9 w-[180px]">
-                  <SelectValue placeholder="School" />
+                  <SelectValue placeholder="Okul" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All schools</SelectItem>
+                  <SelectItem value="all">Tüm okullar</SelectItem>
                   {schools.map((s) => (
                     <SelectItem key={s.id} value={s.id}>
                       {s.name}
@@ -415,7 +415,7 @@ export default function Leads() {
               </Select>
               <Select value={replyFilter} onValueChange={setReplyFilter}>
                 <SelectTrigger className="h-9 w-[140px]">
-                  <SelectValue placeholder="Reply" />
+                  <SelectValue placeholder="Yanıt" />
                 </SelectTrigger>
                 <SelectContent>
                   {REPLY_OPTIONS.map((o) => (
@@ -433,7 +433,7 @@ export default function Leads() {
         {someSelected && (
           <div className="px-5 py-3 border-y border-border/60 bg-muted/30 flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm">
-              <span className="font-medium">{selectedIds.size}</span> selected
+              <span className="font-medium">{selectedIds.size}</span> seçildi
             </p>
             <div className="flex flex-wrap items-center gap-2">
               <Select
@@ -442,7 +442,7 @@ export default function Leads() {
                 disabled={bulkUpdating}
               >
                 <SelectTrigger className="h-8 w-[180px] text-xs">
-                  <SelectValue placeholder="Set status to…" />
+                  <SelectValue placeholder="Durumu değiştir…" />
                 </SelectTrigger>
                 <SelectContent>
                   {STATUS_OPTIONS.map((s) => (
@@ -464,7 +464,7 @@ export default function Leads() {
                 ) : (
                   <Sparkles className="h-3.5 w-3.5" />
                 )}
-                Bulk AI draft
+                Toplu AI taslağı
               </Button>
               <Button
                 size="sm"
@@ -473,7 +473,7 @@ export default function Leads() {
                 onClick={() => exportCsv("selected")}
               >
                 <Download className="h-3.5 w-3.5" />
-                Export selected
+                Seçilenleri indir
               </Button>
               <Button
                 size="sm"
@@ -481,7 +481,7 @@ export default function Leads() {
                 className="h-8"
                 onClick={() => setSelectedIds(new Set())}
               >
-                Clear
+                Temizle
               </Button>
             </div>
           </div>
@@ -490,11 +490,11 @@ export default function Leads() {
         <CardContent className="p-0">
           {loading ? (
             <div className="text-sm text-muted-foreground py-12 text-center">
-              Loading leads…
+              Lead'ler yükleniyor…
             </div>
           ) : !filtered.length ? (
             <div className="text-sm text-muted-foreground py-12 text-center">
-              No leads match the current filters.
+              Geçerli filtrelerle eşleşen lead yok.
             </div>
           ) : (
             <Table>
@@ -504,41 +504,41 @@ export default function Leads() {
                     <Checkbox
                       checked={allFilteredSelected}
                       onCheckedChange={(c) => toggleAll(!!c)}
-                      aria-label="Select all"
+                      aria-label="Tümünü seç"
                     />
                   </TableHead>
                   <SortHeader
-                    label="Name"
+                    label="İsim"
                     field="name"
                     sortField={sortField}
                     sortDir={sortDir}
                     onClick={toggleSort}
                   />
-                  <TableHead>School</TableHead>
-                  <TableHead>Source</TableHead>
+                  <TableHead>Okul</TableHead>
+                  <TableHead>Kaynak</TableHead>
                   <SortHeader
-                    label="Intent"
+                    label="Niyet"
                     field="intent_score"
                     sortField={sortField}
                     sortDir={sortDir}
                     onClick={toggleSort}
                   />
                   <SortHeader
-                    label="Status"
+                    label="Durum"
                     field="status"
                     sortField={sortField}
                     sortDir={sortDir}
                     onClick={toggleSort}
                   />
                   <SortHeader
-                    label="Created"
+                    label="Oluşturma"
                     field="created_at"
                     sortField={sortField}
                     sortDir={sortDir}
                     onClick={toggleSort}
                   />
-                  <TableHead>Last activity</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>Son aktivite</TableHead>
+                  <TableHead className="text-right">Aksiyonlar</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -557,7 +557,7 @@ export default function Leads() {
                         <Checkbox
                           checked={isSelected}
                           onCheckedChange={(c) => toggleOne(l.id, !!c)}
-                          aria-label={`Select ${l.name}`}
+                          aria-label={`${l.name} seç`}
                         />
                       </TableCell>
                       <TableCell>
@@ -606,7 +606,7 @@ export default function Leads() {
                             size="icon"
                             variant="ghost"
                             className="h-7 w-7"
-                            title="Generate AI reply (draft)"
+                            title="AI yanıtı üret (taslak)"
                             disabled={rowAction?.id === l.id}
                             onClick={() => quickAiReply(l, false)}
                           >
@@ -620,7 +620,7 @@ export default function Leads() {
                             size="icon"
                             variant="ghost"
                             className="h-7 w-7"
-                            title="Generate &amp; send AI reply"
+                            title="AI yanıtı üret ve gönder"
                             disabled={rowAction?.id === l.id}
                             onClick={() => quickAiReply(l, true)}
                           >
@@ -656,10 +656,10 @@ export default function Leads() {
 
               <div className="mt-6 space-y-5">
                 <div className="grid grid-cols-2 gap-3">
-                  <DetailField label="School" value={schoolMap[selected.school_id] ?? "—"} />
-                  <DetailField label="Source" value={selected.source ?? "manual"} />
+                  <DetailField label="Okul" value={schoolMap[selected.school_id] ?? "—"} />
+                  <DetailField label="Kaynak" value={selected.source ?? "manuel"} />
                   <DetailField
-                    label="Intent"
+                    label="Niyet"
                     value={
                       <Badge
                         variant="outline"
@@ -675,24 +675,24 @@ export default function Leads() {
                     }
                   />
                   <DetailField
-                    label="Created"
+                    label="Oluşturma"
                     value={new Date(selected.created_at).toLocaleString()}
                   />
                   {selected.whatsapp_sent_at && (
                     <DetailField
-                      label="First sent"
+                      label="İlk gönderim"
                       value={new Date(selected.whatsapp_sent_at).toLocaleString()}
                     />
                   )}
                   {selected.replied_at && (
                     <DetailField
-                      label="Replied"
+                      label="Yanıt"
                       value={new Date(selected.replied_at).toLocaleString()}
                     />
                   )}
                   {selected.scored_at && (
                     <DetailField
-                      label="Scored"
+                      label="Puanlandı"
                       value={new Date(selected.scored_at).toLocaleString()}
                     />
                   )}
@@ -701,7 +701,7 @@ export default function Leads() {
                 {selected.score_reason && (
                   <div className="space-y-1.5">
                     <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                      Score reason
+                      Puanlama gerekçesi
                     </p>
                     <p className="text-sm bg-muted/40 border border-border/60 rounded-md p-3 leading-relaxed">
                       {selected.score_reason}
@@ -711,7 +711,7 @@ export default function Leads() {
 
                 <div className="space-y-2">
                   <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                    Update status
+                    Durumu güncelle
                   </p>
                   <Select
                     value={selected.status ?? "new"}
@@ -742,7 +742,7 @@ export default function Leads() {
                   <Button asChild variant="outline" size="sm" className="flex-1 gap-1.5">
                     <a href={`tel:${selected.phone}`}>
                       <Phone className="h-3.5 w-3.5" />
-                      Call
+                      Ara
                     </a>
                   </Button>
                   <Button asChild variant="outline" size="sm" className="flex-1 gap-1.5">
@@ -752,7 +752,7 @@ export default function Leads() {
                       rel="noreferrer"
                     >
                       <MessageSquare className="h-3.5 w-3.5" />
-                      Open WhatsApp
+                      WhatsApp aç
                     </a>
                   </Button>
                 </div>
@@ -843,7 +843,7 @@ function ActivityCell({ lead }: { lead: Lead }) {
     return (
       <div className="flex items-center gap-1.5 text-success">
         <CheckCircle2 className="h-3 w-3" />
-        <span>Replied · {timeAgo(lead.replied_at)}</span>
+        <span>Yanıtlandı · {timeAgo(lead.replied_at)}</span>
       </div>
     );
   }
@@ -852,7 +852,7 @@ function ActivityCell({ lead }: { lead: Lead }) {
     return (
       <div className="flex items-center gap-1.5 text-muted-foreground">
         <Send className="h-3 w-3" />
-        <span>Sent · {timeAgo(ts)}</span>
+        <span>Gönderildi · {timeAgo(ts)}</span>
       </div>
     );
   }
