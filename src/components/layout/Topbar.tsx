@@ -12,7 +12,7 @@ export function Topbar() {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const initials = (user?.email ?? "?").slice(0, 2).toUpperCase();
-  const roleLabel = profile?.role === "agency_admin" ? "Agency Admin" : profile?.role === "school_admin" ? "School Admin" : "Member";
+  const roleLabel = profile?.role === "agency_admin" ? "Ajans Yöneticisi" : profile?.role === "school_admin" ? "Okul Yöneticisi" : "Üye";
 
   return (
     <header className="h-14 flex items-center gap-3 border-b border-border bg-background/80 backdrop-blur-md px-4 sticky top-0 z-30">
@@ -22,7 +22,7 @@ export function Topbar() {
         <div className="relative w-full">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search schools, campaigns, leads…"
+            placeholder="Okul, kampanya, lead ara…"
             className="pl-8 h-9 bg-muted/40 border-border focus-visible:ring-1 focus-visible:ring-ring"
           />
         </div>
@@ -36,7 +36,7 @@ export function Topbar() {
           size="icon"
           onClick={toggleTheme}
           className="h-9 w-9 text-muted-foreground hover:text-foreground"
-          aria-label="Toggle theme"
+          aria-label="Tema değiştir"
         >
           {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </Button>
@@ -44,7 +44,7 @@ export function Topbar() {
           variant="ghost"
           size="icon"
           className="h-9 w-9 text-muted-foreground hover:text-foreground relative"
-          aria-label="Notifications"
+          aria-label="Bildirimler"
         >
           <Bell className="h-4 w-4" />
           <span className="absolute top-2 right-2 h-1.5 w-1.5 rounded-full bg-primary animate-pulse-glow" />
@@ -64,7 +64,7 @@ export function Topbar() {
             size="icon"
             onClick={async () => { await signOut(); navigate("/login", { replace: true }); }}
             className="h-9 w-9 text-muted-foreground hover:text-foreground"
-            aria-label="Sign out"
+            aria-label="Çıkış yap"
           >
             <LogOut className="h-4 w-4" />
           </Button>

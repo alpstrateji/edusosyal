@@ -18,18 +18,18 @@ import { useAuth } from "@/contexts/AuthContext";
 import { canAccessRoute } from "@/lib/roleRouting";
 
 const mainItems = [
-  { title: "Agency Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Leads", url: "/leads", icon: Users },
-  { title: "Campaigns", url: "/campaigns", icon: Megaphone },
-  { title: "Schools", url: "/schools", icon: School },
-  { title: "School Setup", url: "/school-setup", icon: School },
-  { title: "Agent Logs", url: "/logs", icon: Terminal },
-  { title: "Meta Mappings", url: "/meta-mappings", icon: Tag },
-  { title: "Settings", url: "/settings", icon: Settings },
+  { title: "Ajans Paneli", url: "/dashboard", icon: LayoutDashboard },
+  { title: "Lead'ler", url: "/leads", icon: Users },
+  { title: "Kampanyalar", url: "/campaigns", icon: Megaphone },
+  { title: "Okullar", url: "/schools", icon: School },
+  { title: "Okul Kurulumu", url: "/school-setup", icon: School },
+  { title: "Ajan Logları", url: "/logs", icon: Terminal },
+  { title: "Meta Eşlemeleri", url: "/meta-mappings", icon: Tag },
+  { title: "Ayarlar", url: "/settings", icon: Settings },
 ];
 
 const stubItems = [
-  { title: "WhatsApp Inbox", url: "/inbox", icon: MessageSquare },
+  { title: "WhatsApp Kutusu", url: "/inbox", icon: MessageSquare },
 ];
 
 export function AppSidebar() {
@@ -53,7 +53,7 @@ export function AppSidebar() {
             <div className="flex flex-col leading-tight">
               <span className="text-sm font-semibold text-sidebar-foreground">Edusonex</span>
               <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                AaaS Platform
+                AaaS Platformu
               </span>
             </div>
           )}
@@ -63,7 +63,7 @@ export function AppSidebar() {
       <SidebarContent className="py-2">
         <SidebarGroup>
           <SidebarGroupLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/70">
-            Workspace
+            Çalışma Alanı
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -94,7 +94,7 @@ export function AppSidebar() {
 
         <SidebarGroup>
           <SidebarGroupLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/70">
-            Coming soon
+            Yakında
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>

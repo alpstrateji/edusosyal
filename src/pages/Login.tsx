@@ -27,7 +27,7 @@ export default function Login() {
     if (error) {
       toast.error(error);
     } else {
-      toast.success("Welcome back");
+      toast.success("Tekrar hoş geldiniz");
       navigate("/", { replace: true });
     }
   }
@@ -44,27 +44,27 @@ export default function Login() {
 
         <Card className="border-border/50">
           <CardHeader>
-            <CardTitle>Sign in</CardTitle>
-            <CardDescription>Enter your credentials to access the agency dashboard.</CardDescription>
+            <CardTitle>Giriş yap</CardTitle>
+            <CardDescription>Ajans paneline erişmek için bilgilerinizi girin.</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@agency.com" />
+                <Label htmlFor="email">E-posta</Label>
+                <Input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ornek@ajans.com" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">Parola</Label>
                 <Input id="password" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
               </div>
               <Button type="submit" className="w-full" disabled={submitting}>
                 {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Sign in
+                Giriş yap
               </Button>
             </form>
             <p className="mt-4 text-sm text-muted-foreground text-center">
-              No account?{" "}
-              <Link to="/signup" className="text-primary hover:underline">Create one</Link>
+              Hesabınız yok mu?{" "}
+              <Link to="/signup" className="text-primary hover:underline">Hesap oluşturun</Link>
             </p>
           </CardContent>
         </Card>
