@@ -37,7 +37,10 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
   const { profile } = useAuth();
-  const visibleMain = mainItems.filter((i) => canAccessRoute(profile?.role, i.url));
+  // Kabuk UI modu: profile yoksa tüm menüyü göster (auth bypass).
+  const visibleMain = profile
+    ? mainItems.filter((i) => canAccessRoute(profile.role, i.url))
+    : mainItems;
 
   const isActive = (path: string) =>
     path === "/dashboard" ? location.pathname === "/dashboard" : location.pathname.startsWith(path);
