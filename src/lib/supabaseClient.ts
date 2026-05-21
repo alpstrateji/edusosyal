@@ -1,18 +1,107 @@
-import { createClient } from "@supabase/supabase-js";
+/**
+ * KABUK UI MODU — Supabase bağlantısı yok.
+ *
+ * Bu dosya gerçek bir Supabase istemcisi YERİNE no-op bir stub export eder.
+ * Tüm sorgular boş veri / null döner, auth her zaman "oturum yok" der,
+ * realtime kanalları sessizce abone olur. Böylece mevcut hook'lar ve sayfalar
+ * hata vermeden render olur; UI tamamen statik bir kabuk gibi davranır.
+ *
+ * Backend'e bağlanmaya hazır olduğunda bu dosyayı gerçek createClient ile
+ * değiştir; tüketici dosyalar değişmeden çalışmaya devam eder.
+ */
 
-const SUPABASE_URL = "https://iqiqlpzhdawjfrndrikb.supabase.co";
-// Publishable / anon key — safe to ship to the client.
-const SUPABASE_PUBLISHABLE_KEY =
-  "sb_publishable__B100iR3xt4-RPke_Tnh6g_-p2nIOPX";
+type Result<T = unknown> = { data: T; error: null };
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+function ok<T>(data: T): Promise<Result<T>> {
+  return Promise.resolve({ data, error: null });
+}
+
+/**
+ * Hem zincirlenebilir (.eq().order()...) hem de await edilebilir bir nesne.
+ * Default await sonucu: { data: [], error: null }.
+ * .single()/.maybeSingle() çağrıldığında { data: null, error: null }.
+ */
+function makeQueryBuilder(): any {
+  const arrayResult: Result<unknown[]> = { data: [], error: null };
+  const builder: any = {
+    // Mutasyonlar — hepsi self-return
+    select: () => builder,
+    insert: () => builder,
+    update: () => builder,
+    upsert: () => builder,
+    delete: () => builder,
+    // Filtreler
+    eq: () => builder,
+    neq: () => builder,
+    gt: () => builder,
+    gte: () => builder,
+    lt: () => builder,
+    lte: () => builder,
+    like: () => builder,
+    ilike: () => builder,
+    is: () => builder,
+    in: () => builder,
+    contains: () => builder,
+    or: () => builder,
+    not: () => builder,
+    match: () => builder,
+    // Modifiers
+    order: () => builder,
+    limit: () => builder,
+    range: () => builder,
+    // Terminators
+    single: () => ok<null>(null),
+    maybeSingle: () => ok<null>(null),
+    // Thenable — await edildiğinde boş liste döner
+    then: (resolve: (v: Result<unknown[]>) => void) => resolve(arrayResult),
+    catch: () => builder,
+  };
+  return builder;
+}
+
+const channelStub = {
+  on: () => channelStub,
+  subscribe: () => channelStub,
+  unsubscribe: () => Promise.resolve("ok"),
+};
+
+const AUTH_DISABLED_MSG =
+  "Kimlik doğrulama devre dışı (kabuk UI modu). Adres çubuğundan sayfalara doğrudan gidebilirsin.";
+
+export const supabase: any = {
+  from: () => makeQueryBuilder(),
+  rpc: () => ok(null),
+  channel: () => channelStub,
+  removeChannel: () => {},
   auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-    storage: localStorage,
+    getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+    getUser: () => Promise.resolve({ data: { user: null }, error: null }),
+    onAuthStateChange: () => ({
+      data: { subscription: { unsubscribe: () => {} } },
+    }),
+    signInWithPassword: () =>
+      Promise.resolve({ data: { session: null, user: null }, error: { message: AUTH_DISABLED_MSG } }),
+    signUp: () =>
+      Promise.resolve({ data: { session: null, user: null }, error: { message: AUTH_DISABLED_MSG } }),
+    signOut: () => Promise.resolve({ error: null }),
   },
-});
+  functions: {
+    invoke: () =>
+      Promise.resolve({ data: null, error: { message: "Edge functions devre dışı (kabuk UI modu)." } }),
+  },
+  storage: {
+    from: () => ({
+      upload: () => ok(null),
+      download: () => ok(null),
+      remove: () => ok(null),
+      getPublicUrl: () => ({ data: { publicUrl: "" } }),
+    }),
+  },
+};
+
+// ============================================================
+// Tip tanımları — UI bileşenlerinin import ettiği şekiller
+// ============================================================
 
 export type AgentType =
   | "performance"
@@ -41,7 +130,6 @@ export interface Campaign {
 }
 
 export type IntentLevel = "high" | "medium" | "low" | "unknown";
-
 export type MessageProvider = "telegram" | "whatsapp" | "console";
 
 export interface Lead {
