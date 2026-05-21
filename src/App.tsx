@@ -6,9 +6,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { RoleRoute } from "@/components/auth/RoleRoute";
-import { RoleLanding } from "@/components/auth/RoleLanding";
 import Index from "./pages/Index.tsx";
 import AgentLogs from "./pages/AgentLogs.tsx";
 import ComingSoon from "./pages/ComingSoon.tsx";
@@ -24,10 +21,11 @@ import SchoolSetup from "./pages/SchoolSetup.tsx";
 
 const queryClient = new QueryClient();
 
-const Protected = ({ children }: { children: React.ReactNode }) => (
-  <ProtectedRoute>
-    <AppLayout>{children}</AppLayout>
-  </ProtectedRoute>
+// Kabuk UI modu: auth gate'leri (ProtectedRoute / RoleRoute) geçici olarak kaldırıldı.
+// Kullanıcı login olmadan direkt sayfalara girebilir. Auth tekrar açılırken App.tsx
+// git history'den eski haline döndürülebilir. Detay: E2E_LOCAL.md
+const Shell = ({ children }: { children: React.ReactNode }) => (
+  <AppLayout>{children}</AppLayout>
 );
 
 const App = () => (
@@ -41,16 +39,16 @@ const App = () => (
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
-              <Route path="/" element={<Protected><RoleLanding /></Protected>} />
-              <Route path="/dashboard" element={<Protected><RoleRoute allow={["agency_admin"]}><Index /></RoleRoute></Protected>} />
-              <Route path="/leads" element={<Protected><Leads /></Protected>} />
-              <Route path="/logs" element={<Protected><AgentLogs /></Protected>} />
-              <Route path="/schools" element={<Protected><RoleRoute allow={["agency_admin"]}><SchoolsAdmin /></RoleRoute></Protected>} />
-              <Route path="/campaigns" element={<Protected><RoleRoute allow={["agency_admin"]}><CampaignsAdmin /></RoleRoute></Protected>} />
-              <Route path="/meta-mappings" element={<Protected><RoleRoute allow={["agency_admin"]}><MetaMappingsAdmin /></RoleRoute></Protected>} />
-              <Route path="/settings" element={<Protected><SettingsPage /></Protected>} />
-              <Route path="/school-setup" element={<Protected><SchoolSetup /></Protected>} />
-              <Route path="/inbox" element={<Protected><ComingSoon title="WhatsApp Inbox" /></Protected>} />
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/dashboard" element={<Shell><Index /></Shell>} />
+              <Route path="/leads" element={<Shell><Leads /></Shell>} />
+              <Route path="/logs" element={<Shell><AgentLogs /></Shell>} />
+              <Route path="/schools" element={<Shell><SchoolsAdmin /></Shell>} />
+              <Route path="/campaigns" element={<Shell><CampaignsAdmin /></Shell>} />
+              <Route path="/meta-mappings" element={<Shell><MetaMappingsAdmin /></Shell>} />
+              <Route path="/settings" element={<Shell><SettingsPage /></Shell>} />
+              <Route path="/school-setup" element={<Shell><SchoolSetup /></Shell>} />
+              <Route path="/inbox" element={<Shell><ComingSoon title="WhatsApp Inbox" /></Shell>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
