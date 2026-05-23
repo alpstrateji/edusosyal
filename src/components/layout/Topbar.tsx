@@ -42,6 +42,15 @@ export function Topbar() {
       <div className="flex-1 md:hidden" />
 
       <div className="flex items-center gap-1.5">
+        <Select value={effectiveRole} onValueChange={handleRoleChange}>
+          <SelectTrigger className="h-9 w-[170px] text-xs" aria-label="Demo rol seçici">
+            <SelectValue placeholder="Rol seç" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="agency_admin">Ajans Yöneticisi</SelectItem>
+            <SelectItem value="school_admin">Okul Yöneticisi</SelectItem>
+          </SelectContent>
+        </Select>
         <Button
           variant="ghost"
           size="icon"
