@@ -15,6 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 
 import { useAuth } from "@/contexts/AuthContext";
+import { useDemoRole } from "@/contexts/DemoRoleContext";
 import { canAccessRoute } from "@/lib/roleRouting";
 
 const mainItems = [
