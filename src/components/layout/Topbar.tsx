@@ -16,9 +16,22 @@ export function Topbar() {
   const { user, profile, signOut } = useAuth();
   const { role: demoRole, setRole: setDemoRole } = useDemoRole();
   const navigate = useNavigate();
+  const navigate = useNavigate();
+  const location = useLocation();
   const initials = (user?.email ?? "DM").slice(0, 2).toUpperCase();
   const effectiveRole: Role = profile?.role ?? demoRole;
   const roleLabel = effectiveRole === "agency_admin" ? "Ajans Yöneticisi" : "Okul Yöneticisi";
+
+  // URL → rol senkronizasyonu: /dashboard'a girince agency_admin, /leads'e girince school_admin seç.
+  useEffect(() => {
+    if (profile) return; // Gerçek profil varsa demo rol zorlanmaz.
+    const p = location.pathname;
+    if ((p === "/dashboard" || p.startsWith("/dashboard/")) && demoRole !== "agency_admin") {
+      setDemoRole("agency_admin");
+    } else if ((p === "/leads" || p.startsWith("/leads/")) && demoRole !== "school_admin") {
+      setDemoRole("school_admin");
+    }
+  }, [location.pathname, profile, demoRole, setDemoRole]);
 
   function handleRoleChange(next: string) {
     const r = next as Role;
