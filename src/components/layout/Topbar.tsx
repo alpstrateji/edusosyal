@@ -16,7 +16,6 @@ export function Topbar() {
   const { user, profile, signOut } = useAuth();
   const { role: demoRole, setRole: setDemoRole } = useDemoRole();
   const navigate = useNavigate();
-  const navigate = useNavigate();
   const location = useLocation();
   const initials = (user?.email ?? "DM").slice(0, 2).toUpperCase();
   const effectiveRole: Role = profile?.role ?? demoRole;
