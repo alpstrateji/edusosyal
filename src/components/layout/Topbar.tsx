@@ -5,14 +5,25 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useTheme } from "@/components/ThemeProvider";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
+import { useDemoRole } from "@/contexts/DemoRoleContext";
 import { useNavigate } from "react-router-dom";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { defaultRouteForRole, type Role } from "@/lib/roleRouting";
 
 export function Topbar() {
   const { theme, toggleTheme } = useTheme();
   const { user, profile, signOut } = useAuth();
+  const { role: demoRole, setRole: setDemoRole } = useDemoRole();
   const navigate = useNavigate();
-  const initials = (user?.email ?? "?").slice(0, 2).toUpperCase();
-  const roleLabel = profile?.role === "agency_admin" ? "Ajans Yöneticisi" : profile?.role === "school_admin" ? "Okul Yöneticisi" : "Üye";
+  const initials = (user?.email ?? "DM").slice(0, 2).toUpperCase();
+  const effectiveRole: Role = profile?.role ?? demoRole;
+  const roleLabel = effectiveRole === "agency_admin" ? "Ajans Yöneticisi" : "Okul Yöneticisi";
+
+  function handleRoleChange(next: string) {
+    const r = next as Role;
+    setDemoRole(r);
+    navigate(defaultRouteForRole(r), { replace: true });
+  }
 
   return (
     <header className="h-14 flex items-center gap-3 border-b border-border bg-background/80 backdrop-blur-md px-4 sticky top-0 z-30">
