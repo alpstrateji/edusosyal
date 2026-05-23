@@ -1,4 +1,5 @@
 import { Bell, Moon, Sun, Search, LogOut } from "lucide-react";
+import { useEffect } from "react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -6,7 +7,7 @@ import { useTheme } from "@/components/ThemeProvider";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDemoRole } from "@/contexts/DemoRoleContext";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { defaultRouteForRole, type Role } from "@/lib/roleRouting";
 
@@ -15,9 +16,21 @@ export function Topbar() {
   const { user, profile, signOut } = useAuth();
   const { role: demoRole, setRole: setDemoRole } = useDemoRole();
   const navigate = useNavigate();
+  const location = useLocation();
   const initials = (user?.email ?? "DM").slice(0, 2).toUpperCase();
   const effectiveRole: Role = profile?.role ?? demoRole;
   const roleLabel = effectiveRole === "agency_admin" ? "Ajans Yöneticisi" : "Okul Yöneticisi";
+
+  // URL → rol senkronizasyonu: /dashboard'a girince agency_admin, /leads'e girince school_admin seç.
+  useEffect(() => {
+    if (profile) return; // Gerçek profil varsa demo rol zorlanmaz.
+    const p = location.pathname;
+    if ((p === "/dashboard" || p.startsWith("/dashboard/")) && demoRole !== "agency_admin") {
+      setDemoRole("agency_admin");
+    } else if ((p === "/leads" || p.startsWith("/leads/")) && demoRole !== "school_admin") {
+      setDemoRole("school_admin");
+    }
+  }, [location.pathname, profile, demoRole, setDemoRole]);
 
   function handleRoleChange(next: string) {
     const r = next as Role;
