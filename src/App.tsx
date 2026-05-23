@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { DemoRoleProvider } from "@/contexts/DemoRoleContext";
 import Index from "./pages/Index.tsx";
 import AgentLogs from "./pages/AgentLogs.tsx";
 import ComingSoon from "./pages/ComingSoon.tsx";
