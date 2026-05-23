@@ -43,8 +43,12 @@ export function AppSidebar() {
   const effectiveRole = profile?.role ?? demoRole;
   const visibleMain = mainItems.filter((i) => canAccessRoute(effectiveRole, i.url));
 
-  const isActive = (path: string) =>
-    path === "/dashboard" ? location.pathname === "/dashboard" : location.pathname.startsWith(path);
+  const isActive = (path: string) => {
+    const current = location.pathname;
+    if (current === path) return true;
+    // Yalnızca tam segment eşleşmesi: "/school" yanlışlıkla "/school-setup"u eşlememeli.
+    return current.startsWith(path + "/");
+  };
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
