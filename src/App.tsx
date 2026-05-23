@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { DemoRoleProvider } from "@/contexts/DemoRoleContext";
 import Index from "./pages/Index.tsx";
 import AgentLogs from "./pages/AgentLogs.tsx";
 import ComingSoon from "./pages/ComingSoon.tsx";
@@ -36,6 +37,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
+            <DemoRoleProvider>
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
@@ -52,6 +54,7 @@ const App = () => (
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            </DemoRoleProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>

@@ -15,6 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 
 import { useAuth } from "@/contexts/AuthContext";
+import { useDemoRole } from "@/contexts/DemoRoleContext";
 import { canAccessRoute } from "@/lib/roleRouting";
 
 const mainItems = [
@@ -37,10 +38,10 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
   const { profile } = useAuth();
-  // Kabuk UI modu: profile yoksa tüm menüyü göster (auth bypass).
-  const visibleMain = profile
-    ? mainItems.filter((i) => canAccessRoute(profile.role, i.url))
-    : mainItems;
+  const { role: demoRole } = useDemoRole();
+  // Kabuk UI modu: gerçek profile yoksa demo role'ü baz al.
+  const effectiveRole = profile?.role ?? demoRole;
+  const visibleMain = mainItems.filter((i) => canAccessRoute(effectiveRole, i.url));
 
   const isActive = (path: string) =>
     path === "/dashboard" ? location.pathname === "/dashboard" : location.pathname.startsWith(path);
